@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Casino Lobby - Live Version</title>
+    <title>Casino Lobby - Online</title>
     <style>
         /* --- 全局設定 --- */
         :root {
@@ -404,7 +404,7 @@
                     <div class="setting-item"><span class="setting-label">遊戲音效</span><div style="color: #00ff00; font-weight:bold;">ON</div></div>
                     <div class="setting-item"><span class="setting-label">推播通知</span><div style="color: #666;">OFF</div></div>
                 </div>
-                <div class="logout-btn" onclick="logout()">登出帳號 (清除存檔)</div>
+                <div class="logout-btn" onclick="logout()">登出帳號</div>
             </div>
             <div class="panel-footer">
                 <div class="close-gold-btn" id="close-profile-btn">CLOSE</div>
@@ -452,28 +452,66 @@
         <button id="close-game-btn">✕</button>
     </div>
 
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
     <script>
-        // --- 1. User & Storage System ---
-        const STORAGE_KEY = 'casino_user_v1';
+        // --- 1. Firebase Configuration & Initialization ---
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyA13JH6n_YRY2Rtiuq2u3iN4mEe5cQL8Bo",
+            authDomain: "casino-lobby-123f5.firebaseapp.com",
+            projectId: "casino-lobby-123f5",
+            storageBucket: "casino-lobby-123f5.firebasestorage.app",
+            messagingSenderId: "433397567788",
+            appId: "1:433397567788:web:197a552bba01b186dedc89"
+        };
+
+        // Initialize Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.database();
+
+        // --- 2. User Logic with Firebase ---
         let currentUser = null;
+        let myUserId = localStorage.getItem('casino_firebase_uid');
 
         function initUser() {
-            const stored = localStorage.getItem(STORAGE_KEY);
-            if (stored) {
-                currentUser = JSON.parse(stored);
-            } else {
-                let name = prompt("歡迎來到 Casino Lobby！\n請輸入您的暱稱 (測試用)：") || "Guest";
-                let id = Math.floor(10000000 + Math.random() * 90000000); 
-                currentUser = {
+            // 檢查是否已有 ID
+            if (!myUserId) {
+                // 新玩家：產生 ID 並存入 localStorage
+                myUserId = 'user_' + Math.floor(10000000 + Math.random() * 90000000);
+                localStorage.setItem('casino_firebase_uid', myUserId);
+                
+                // 詢問暱稱 (如果使用者取消，預設為 Guest)
+                let name = prompt("歡迎來到 Casino Lobby！\n請輸入您的暱稱：") || "Guest";
+                
+                // 寫入 Firebase
+                db.ref('players/' + myUserId).set({
                     name: name,
-                    id: id,
-                    balance: 10000.00, // 新手贈金
-                    vip: 1
-                };
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(currentUser));
-                alert(`歡迎 ${name}！已為您建立臨時帳號。\nID: ${id}\n贈送體驗金: 10,000`);
+                    balance: 10000, // 新手體驗金
+                    vip: 1,
+                    joinedAt: Date.now()
+                });
             }
-            updateUserUI();
+
+            // 監聽 Firebase 資料變化 (即時更新 UI)
+            db.ref('players/' + myUserId).on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    currentUser = data;
+                    updateUserUI();
+                } else {
+                    // 如果 ID 存在但 DB 沒資料 (例如被手動刪除)，重新建立
+                    let name = prompt("資料遺失，請重新輸入暱稱：") || "Guest";
+                    db.ref('players/' + myUserId).set({
+                        name: name,
+                        balance: 10000,
+                        vip: 1
+                    });
+                }
+            });
         }
 
         function updateUserUI() {
@@ -484,26 +522,27 @@
             
             // Profile Panel
             document.querySelector('.p-name').innerText = currentUser.name;
-            document.querySelector('.p-id').innerText = "ID: " + currentUser.id;
+            document.querySelector('.p-id').innerText = "ID: " + myUserId;
             
             // Wallet Modal
             document.querySelector('.w-balance').innerText = "當前餘額: " + currentUser.balance.toLocaleString('en-US', {minimumFractionDigits: 2});
         }
 
         function updateUserBalance(amount) {
-            currentUser.balance += amount;
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(currentUser));
-            updateUserUI();
+            // 使用 Firebase 的交易功能來確保數字準確 (避免併發問題)
+            db.ref('players/' + myUserId + '/balance').transaction((currentBalance) => {
+                return (currentBalance || 0) + amount;
+            });
         }
 
         function logout() {
-            if(confirm("確定要登出並清除本機存檔嗎？")) {
-                localStorage.removeItem(STORAGE_KEY);
-                location.reload(); // 重新整理網頁
+            if(confirm("確定要登出嗎？(這會清除本機 ID，下次視為新玩家)")) {
+                localStorage.removeItem('casino_firebase_uid');
+                location.reload(); 
             }
         }
 
-        // --- 2. Navigation & Panels ---
+        // --- 3. Navigation & Panels ---
         const navItems = document.querySelectorAll('.nav-item');
         const mainScroll = document.querySelector('.main-scroll-area');
         
@@ -553,7 +592,7 @@
         closeRewardsBtn.addEventListener('click', closeAllPanels);
         closeProfileBtn.addEventListener('click', closeAllPanels);
 
-        // --- 3. Feature Logic ---
+        // --- 4. Feature Logic ---
         const tabs = document.querySelectorAll('.tab-item');
         tabs.forEach(tab => {
             tab.addEventListener('click', () => {
@@ -603,8 +642,9 @@
             updateUserBalance(500000); 
         }
 
-        // --- 4. Game Integration ---
+        // --- 5. Game Integration (Cross-window) ---
         window.addEventListener('message', (event) => {
+            // 1. 接收關閉訊號
             if (event.data === 'closeGame') {
                 const overlay = document.getElementById('transition-overlay');
                 const gameContainer = document.getElementById('game-container');
@@ -616,12 +656,23 @@
                     if(iframe) iframe.remove(); 
                     if(dragonCard) dragonCard.classList.remove('launching');
                     overlay.classList.remove('active'); 
+                    
+                    // 回大廳時，主動抓取最新資料 (雖然 on value 會自動做，但多一層保險)
+                    if(myUserId) db.ref('players/' + myUserId).once('value');
                 }, 500);
+            }
+            
+            // 2. 接收金幣同步訊號 (從遊戲傳來的絕對值)
+            if (event.data.type === 'updateBalance') {
+                // 將遊戲內的最新餘額寫入 Firebase
+                db.ref('players/' + myUserId).update({
+                    balance: event.data.value
+                });
             }
         });
 
         document.addEventListener('DOMContentLoaded', () => {
-            initUser(); // Start User System
+            initUser(); // Start Firebase User System
 
             const dragonCard = document.getElementById('game-dragon');
             const overlay = document.getElementById('transition-overlay');
@@ -643,7 +694,18 @@
                             if(oldFrame) oldFrame.remove();
                             gameContainer.appendChild(iframe);
                             gameContainer.style.display = 'block';
-                            iframe.onload = () => { setTimeout(() => { overlay.classList.remove('active'); }, 300); };
+                            
+                            // iframe 載入後，傳送初始餘額
+                            iframe.onload = () => { 
+                                if(currentUser) {
+                                    iframe.contentWindow.postMessage({
+                                        type: 'initBalance', 
+                                        value: currentUser.balance
+                                    }, '*');
+                                }
+                                setTimeout(() => { overlay.classList.remove('active'); }, 300); 
+                            };
+                            
                             setTimeout(() => { if(overlay.classList.contains('active')) overlay.classList.remove('active'); }, 1500);
                         }, 500); 
                     }, 400);
@@ -651,7 +713,7 @@
             }
         });
 
-        // --- 5. Visuals ---
+        // --- 6. Visuals ---
         (function initLobbyBackground() {
             const canvas = document.getElementById('lobby-bg-canvas');
             const container = document.querySelector('.app-container'); 
