@@ -55,54 +55,46 @@
         .avatar-img { height: 5.5vh; width: 5.5vh; border-radius: 50%; object-fit: cover; border: 2px solid #333; }
         .vip-text { color: var(--text-gold); font-weight: 800; font-size: 1.8vh; letter-spacing: 0.5px; }
         
-        /* [修改] Coin Bar 樣式調整 */
         .coin-bar { 
             flex: 1; height: 55%; 
             display: flex; align-items: center; justify-content: space-between; 
             background: rgba(0, 0, 0, 0.2); 
             border: 2px solid rgba(255, 215, 0, 0.3); 
             border-radius: 50px; 
-            padding: 0 8px 0 6px; /* 右邊 padding 加大，因為按鈕沒了 */
+            padding: 0 8px 0 6px; 
             min-width: 0; 
         }
         .gold-icon { height: 63%; width: auto; flex-shrink: 0; }
         
         .center-group { 
             flex: 1; display: flex; align-items: center; 
-            justify-content: flex-end; /* 靠右對齊 */
+            justify-content: flex-end; 
             min-width: 0; padding-right: 0; overflow: hidden; 
         }
         
-        /* [修改] 數字放大 50% */
         .coin-number { 
             color: var(--text-white); 
             font-weight: 650; 
-            font-size: 3.5vh; /* 原本 2.7vh -> 4.0vh */
+            font-size: 3.5vh; 
             margin-right: 8px; margin-top: -4px; 
             letter-spacing: -0.5px; white-space: nowrap; 
             overflow: hidden; text-overflow: ellipsis; line-height: 1.1; 
         }
         
-        /* [修改] COINS 標籤放大 */
         .coins-text-img { 
-            height: 1.8vh; /* 原本 1.2vh -> 1.8vh */
+            height: 1.8vh; 
             width: auto; margin-top: 3px; opacity: 1.0; flex-shrink: 0; 
         } 
         
         .clickable-btn { transition: transform 0.1s ease; }
         .clickable-btn:active { transform: scale(0.85); filter: brightness(1.2); }
-        
-        /* [修改] 隱藏 + 號按鈕 */
         .plus-btn { display: none; }
-        
         .menu-btn { height: 28%; width: auto; cursor: pointer; margin-left: 8px; flex-shrink: 0;}
 
-        /* --- [MODIFIED] Ghost Ticker (跑馬燈) --- */
+        /* --- Ghost Ticker --- */
         #ghost-ticker {
             position: absolute; top: 11%; left: 50%; transform: translateX(-50%);
-            width: 90%; 
-            /* [修改] 高度改回 3.5vh */
-            height: 3.5vh;
+            width: 90%; height: 3.5vh;
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
             border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.15);
@@ -112,11 +104,7 @@
         }
         #ghost-ticker.active { opacity: 1; }
         .ticker-content {
-            white-space: nowrap; 
-            color: #ffffff; 
-            /* [修改] 移除加粗，保持大字體 */
-            font-weight: normal; 
-            font-size: 2.0vh;
+            white-space: nowrap; color: #ffffff; font-weight: normal; font-size: 2.0vh;
             text-shadow: 0 0 10px rgba(255, 255, 255, 0.9);
         }
         @keyframes scrollText {
@@ -309,6 +297,16 @@
         #game-frame { width: 100%; height: 100%; border: none; display: block; }
         
         #close-game-btn { position: absolute; top: 40px; left: 20px; z-index: 20001; display: none !important; }
+        
+        /* --- [新增] Auth Modal Styles --- */
+        #auth-modal { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.95); /* 背景黑一點，專注登入 */
+            z-index: 30000; /* 最上層，比遊戲層還高 */
+            display: flex; justify-content: center; align-items: center; 
+            opacity: 0; pointer-events: none; transition: opacity 0.3s; 
+        }
+        #auth-modal.active { opacity: 1; pointer-events: all; }
 
     </style>
 </head>
@@ -525,6 +523,30 @@
             </div>
         </div>
 
+        <div id="auth-modal" class="active"> <div class="wallet-box" style="width: 40vh; max-width: 90%;">
+                <div class="w-header">
+                    <div class="w-title" id="auth-title">登入 / 註冊</div>
+                    <div class="w-balance" style="color:#aaa;">請輸入您的暱稱與密碼</div>
+                </div>
+                
+                <div style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px;">
+                    <div>
+                        <span class="gift-label">帳號 (暱稱)</span>
+                        <input type="text" id="auth-name" class="gift-input" placeholder="請輸入暱稱 (不可重複)" style="background: rgba(0,0,0,0.5);">
+                    </div>
+                    <div>
+                        <span class="gift-label">密碼</span>
+                        <input type="text" id="auth-pass" class="gift-input" placeholder="請設定密碼 (自訂)" style="background: rgba(0,0,0,0.5);">
+                    </div>
+                </div>
+
+                <div class="w-actions">
+                    <button class="w-btn cancel" style="background: #444; color: #fff;" onclick="doLogin()">登入</button>
+                    <button class="w-btn confirm" onclick="doRegister()">註冊新帳號</button>
+                </div>
+            </div>
+        </div>
+
         <nav class="bottom-nav gradient-border-box">
             <div class="nav-item active" id="nav-home">
                 <img src="home.png" class="nav-icon" alt="Home">
@@ -573,63 +595,154 @@
         }
         const db = firebase.database();
 
-        // --- 2. User Logic with Firebase ---
+        // --- 2. User Logic with Firebase (全新帳號密碼版) ---
         let currentUser = null;
         let myUserId = localStorage.getItem('casino_firebase_uid');
 
+        // 系統啟動時檢查
         function initUser() {
-            if (!myUserId) {
-                myUserId = 'user_' + Math.floor(10000000 + Math.random() * 90000000);
-                localStorage.setItem('casino_firebase_uid', myUserId);
-                let name = prompt("歡迎來到 Casino Lobby！\n請輸入您的暱稱：") || "Guest";
-                db.ref('players/' + myUserId).set({
+            const authModal = document.getElementById('auth-modal');
+            
+            // 如果本機已經有紀錄 ID，嘗試自動登入
+            if (myUserId) {
+                db.ref('players/' + myUserId).once('value', (snapshot) => {
+                    const data = snapshot.val();
+                    
+                    // ★ 修改關鍵：多加了 "&& data.password"
+                    // 只有當資料存在，且「有密碼」(表示是新版註冊帳號) 時，才自動登入
+                    if (data && data.password) {
+                        // 有資料且有密碼 -> 自動登入
+                        currentUser = data;
+                        authModal.classList.remove('active'); // 隱藏登入框
+                        updateUserUI();
+                        startTickerListener(); 
+                        listenUserData(); 
+                    } else {
+                        // 情況 A: ID 無效 (被後台刪除)
+                        // 情況 B: 是舊版遊客帳號 (有資料但沒密碼)
+                        // -> 清除舊紀錄，保持登入框顯示，讓玩家重新註冊
+                        localStorage.removeItem('casino_firebase_uid');
+                        authModal.classList.add('active');
+                    }
+                });
+            } else {
+                // 沒資料，顯示登入框
+                authModal.classList.add('active');
+            }
+        }
+
+        // 登入功能
+        window.doLogin = function() {
+            const name = document.getElementById('auth-name').value.trim();
+            const pass = document.getElementById('auth-pass').value.trim();
+
+            if(!name || !pass) { alert("請輸入帳號與密碼"); return; }
+
+            // ★ 查詢資料庫：找名字一樣的
+            db.ref('players').orderByChild('name').equalTo(name).once('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    // 找到該名字，檢查密碼
+                    let foundUser = false;
+                    snapshot.forEach(child => {
+                        const userData = child.val();
+                        if (userData.password === pass) {
+                            // 密碼正確
+                            foundUser = true;
+                            myUserId = child.key; // 取得該用戶的亂碼 ID
+                            localStorage.setItem('casino_firebase_uid', myUserId);
+                            currentUser = userData;
+                            
+                            document.getElementById('auth-modal').classList.remove('active');
+                            updateUserUI();
+                            startTickerListener();
+                            listenUserData();
+                            alert("歡迎回來，" + userData.name + "！");
+                        }
+                    });
+
+                    if (!foundUser) {
+                        alert("密碼錯誤！(或是您可以聯繫管理員查詢)");
+                    }
+                } else {
+                    alert("找不到此帳號，請先註冊。");
+                }
+            });
+        }
+
+        // 註冊功能
+        window.doRegister = function() {
+            const name = document.getElementById('auth-name').value.trim();
+            const pass = document.getElementById('auth-pass').value.trim();
+
+            if(!name || !pass) { alert("請輸入帳號與密碼"); return; }
+
+            // ★ 步驟 1: 檢查名字是否重複
+            db.ref('players').orderByChild('name').equalTo(name).once('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    alert("這個暱稱已經有人使用了，請換一個！");
+                    return;
+                }
+
+                // ★ 步驟 2: 名字沒重複，建立新帳號
+                const newId = 'user_' + Date.now(); // 用時間戳記當 ID
+                const newUser = {
                     name: name,
+                    password: pass, // ★ 這裡儲存密碼 (後台可見)
                     balance: 10000,
                     vip: 1,
                     joinedAt: Date.now()
-                });
-            }
+                };
 
+                db.ref('players/' + newId).set(newUser, (error) => {
+                    if (error) {
+                        alert("註冊失敗：" + error.message);
+                    } else {
+                        alert("註冊成功！獲得體驗金 10,000");
+                        myUserId = newId;
+                        localStorage.setItem('casino_firebase_uid', myUserId);
+                        currentUser = newUser;
+                        
+                        document.getElementById('auth-modal').classList.remove('active');
+                        updateUserUI();
+                        startTickerListener();
+                        listenUserData();
+                    }
+                });
+            });
+        }
+
+        // 實時監聽數據變動 (餘額更新用)
+        function listenUserData() {
+            if(!myUserId) return;
             db.ref('players/' + myUserId).on('value', (snapshot) => {
                 const data = snapshot.val();
-                if (data) {
+                if(data) {
                     currentUser = data;
                     updateUserUI();
-                } else {
-                    let name = prompt("資料遺失，請重新輸入暱稱：") || "Guest";
-                    db.ref('players/' + myUserId).set({
-                        name: name,
-                        balance: 10000,
-                        vip: 1
-                    });
                 }
             });
-
-            // --- 修改後的 ticker 監聽器 ---
-db.ref('system/ticker').on('value', (snapshot) => {
-    const msg = snapshot.val();
-    if(msg) {
-        // 1. 讓大廳原本的 Ghost Ticker 繼續運作
-        showGhostTicker(msg);
-        
-        // 2. ★ [新增] 檢查遊戲視窗是否存在，如果在，就轉傳訊息進去
-        const gameFrame = document.getElementById('game-frame');
-        if (gameFrame && gameFrame.contentWindow) {
-            gameFrame.contentWindow.postMessage({
-                type: 'tickerMessage',
-                msg: msg
-            }, '*');
         }
-    }
-});
-}
+
+        // 啟動跑馬燈監聽 (從 initUser 拆出來)
+        function startTickerListener() {
+            db.ref('system/ticker').on('value', (snapshot) => {
+                const msg = snapshot.val();
+                if(msg) {
+                    showGhostTicker(msg);
+                    const gameFrame = document.getElementById('game-frame');
+                    if (gameFrame && gameFrame.contentWindow) {
+                        gameFrame.contentWindow.postMessage({ type: 'tickerMessage', msg: msg }, '*');
+                    }
+                }
+            });
+        }
 
         function updateUserUI() {
             if(!currentUser) return;
             document.querySelector('.coin-number').innerText = currentUser.balance.toLocaleString('en-US', {minimumFractionDigits: 2});
             document.querySelector('.vip-text').innerText = "VIP." + currentUser.vip;
             document.querySelector('.p-name').innerText = currentUser.name;
-            document.querySelector('.p-id').innerText = "ID: " + myUserId;
+            document.querySelector('.p-id').innerText = "ID: " + currentUser.name; // 顯示名字就好
             document.querySelector('.w-balance').innerText = "當前餘額: " + currentUser.balance.toLocaleString('en-US', {minimumFractionDigits: 2});
         }
 
@@ -640,7 +753,7 @@ db.ref('system/ticker').on('value', (snapshot) => {
         }
 
         function logout() {
-            if(confirm("確定要登出嗎？(這會清除本機 ID，下次視為新玩家)")) {
+            if(confirm("確定要登出嗎？")) {
                 localStorage.removeItem('casino_firebase_uid');
                 location.reload(); 
             }
@@ -664,7 +777,7 @@ db.ref('system/ticker').on('value', (snapshot) => {
         
         const walletModal = document.getElementById('wallet-modal');
         const closeWalletBtn = document.getElementById('close-wallet-btn');
-        const plusBtn = document.querySelector('.plus-btn'); // Still needed for logic, even if hidden
+        const plusBtn = document.querySelector('.plus-btn');
 
         navItems.forEach(item => {
             item.addEventListener('click', () => {
@@ -846,17 +959,15 @@ db.ref('system/ticker').on('value', (snapshot) => {
                             gameContainer.style.display = 'block';
                             
                             iframe.onload = () => { 
-    // 當遊戲 iframe 載入完成
-    if(currentUser) {
-        console.log("大廳發送初始餘額給遊戲:", currentUser.balance);
-        iframe.contentWindow.postMessage({
-            type: 'initBalance', 
-            value: currentUser.balance
-        }, '*');
-    }
-    // 移除遮罩特效
-    setTimeout(() => { overlay.classList.remove('active'); }, 300); 
-};
+                                if(currentUser) {
+                                    console.log("大廳發送初始餘額給遊戲:", currentUser.balance);
+                                    iframe.contentWindow.postMessage({
+                                        type: 'initBalance', 
+                                        value: currentUser.balance
+                                    }, '*');
+                                }
+                                setTimeout(() => { overlay.classList.remove('active'); }, 300); 
+                            };
                             
                             setTimeout(() => { if(overlay.classList.contains('active')) overlay.classList.remove('active'); }, 1500);
                         }, 500); 
