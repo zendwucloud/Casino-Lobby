@@ -605,13 +605,24 @@
                 }
             });
 
-            db.ref('system/ticker').on('value', (snapshot) => {
-                const msg = snapshot.val();
-                if(msg) {
-                    showGhostTicker(msg);
-                }
-            });
+            // --- 修改後的 ticker 監聽器 ---
+db.ref('system/ticker').on('value', (snapshot) => {
+    const msg = snapshot.val();
+    if(msg) {
+        // 1. 讓大廳原本的 Ghost Ticker 繼續運作
+        showGhostTicker(msg);
+        
+        // 2. ★ [新增] 檢查遊戲視窗是否存在，如果在，就轉傳訊息進去
+        const gameFrame = document.getElementById('game-frame');
+        if (gameFrame && gameFrame.contentWindow) {
+            gameFrame.contentWindow.postMessage({
+                type: 'tickerMessage',
+                msg: msg
+            }, '*');
         }
+    }
+});
+}
 
         function updateUserUI() {
             if(!currentUser) return;
@@ -835,14 +846,17 @@
                             gameContainer.style.display = 'block';
                             
                             iframe.onload = () => { 
-                                if(currentUser) {
-                                    iframe.contentWindow.postMessage({
-                                        type: 'initBalance', 
-                                        value: currentUser.balance
-                                    }, '*');
-                                }
-                                setTimeout(() => { overlay.classList.remove('active'); }, 300); 
-                            };
+    // 當遊戲 iframe 載入完成
+    if(currentUser) {
+        console.log("大廳發送初始餘額給遊戲:", currentUser.balance);
+        iframe.contentWindow.postMessage({
+            type: 'initBalance', 
+            value: currentUser.balance
+        }, '*');
+    }
+    // 移除遮罩特效
+    setTimeout(() => { overlay.classList.remove('active'); }, 300); 
+};
                             
                             setTimeout(() => { if(overlay.classList.contains('active')) overlay.classList.remove('active'); }, 1500);
                         }, 500); 
