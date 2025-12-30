@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Casino God Mode (Admin)</title>
+    <style>
+        body {
+            background-color: #1a1c29;
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #ffd700;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        h1 { margin: 0; color: #ffd700; text-shadow: 0 0 10px rgba(255, 215, 0, 0.5); }
+        .live-badge {
+            background: #ff0000;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 0.8rem;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
+        /* 玩家卡片 */
+        .player-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+        }
+        .player-card:hover {
+            border-color: #ffd700;
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .p-info h2 { margin: 0 0 5px 0; font-size: 1.2rem; }
+        .p-info .uid { color: #888; font-size: 0.8rem; font-family: monospace; }
+        .p-info .vip { 
+            display: inline-block; 
+            background: #333; 
+            color: #ffd700; 
+            padding: 2px 6px; 
+            border-radius: 4px; 
+            font-size: 0.7rem; 
+            margin-top: 5px;
+            border: 1px solid #555;
+        }
+
+        .p-balance {
+            text-align: right;
+            margin-right: 20px;
+        }
+        .balance-num {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #00ff00;
+        }
+        .balance-label { font-size: 0.8rem; color: #aaa; }
+
+        /* 操作區 */
+        .actions {
+            display: flex;
+            gap: 10px;
+        }
+        input.amount-input {
+            background: #333;
+            border: 1px solid #555;
+            color: #fff;
+            padding: 8px;
+            border-radius: 5px;
+            width: 100px;
+            text-align: center;
+        }
+        button {
+            cursor: pointer;
+            padding: 8px 15px;
+            border-radius: 5px;
+            border: none;
+            font-weight: bold;
+            transition: transform 0.1s;
+        }
+        button:active { transform: scale(0.95); }
+        .btn-add { background: #28a745; color: white; }
+        .btn-set { background: #ffc107; color: #000; }
+        .btn-reset { background: #dc3545; color: white; }
+
+        /* 狀態提示 */
+        #status-msg {
+            position: fixed; top: 20px; right: 20px;
+            padding: 10px 20px; border-radius: 5px;
+            background: #333; color: #fff;
+            display: none; z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="status-msg">操作成功</div>
+
+    <div class="container">
+        <div class="header">
+            <h1>⚡ Casino Admin (God Mode)</h1>
+            <div class="live-badge">● LIVE DATABASE</div>
+        </div>
+
+        <div id="player-list">
+            <div style="text-align:center; color:#888; margin-top:50px;">
+                正在連線至 Firebase 衛星...<br>請稍候
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <script>
+        // ★★★ 您的 Firebase Config (已幫您填好) ★★★
+        const firebaseConfig = {
+            apiKey: "AIzaSyA13JH6n_YRY2Rtiuq2u3iN4mEe5cQL8Bo",
+            authDomain: "casino-lobby-123f5.firebaseapp.com",
+            projectId: "casino-lobby-123f5",
+            storageBucket: "casino-lobby-123f5.firebasestorage.app",
+            messagingSenderId: "433397567788",
+            appId: "1:433397567788:web:197a552bba01b186dedc89"
+        };
+
+        // 初始化
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.database();
+
+        // 監聽所有玩家資料
+        db.ref('players').on('value', (snapshot) => {
+            const listDiv = document.getElementById('player-list');
+            listDiv.innerHTML = ''; // 清空列表
+            
+            const data = snapshot.val();
+
+            if (!data) {
+                listDiv.innerHTML = '<div style="text-align:center; padding:20px;">目前沒有玩家在線上</div>';
+                return;
+            }
+
+            // 遍歷所有玩家 (Object.entries 把物件轉成陣列)
+            Object.entries(data).forEach(([uid, player]) => {
+                const card = document.createElement('div');
+                card.className = 'player-card';
+                card.innerHTML = `
+                    <div class="p-info">
+                        <h2>${player.name || 'Unknown'}</h2>
+                        <div class="uid">${uid}</div>
+                        <div class="vip">VIP.${player.vip || 1}</div>
+                    </div>
+                    <div class="p-balance">
+                        <div class="balance-num">${(player.balance || 0).toLocaleString()}</div>
+                        <div class="balance-label">CREDITS</div>
+                    </div>
+                    <div class="actions">
+                        <input type="number" id="input-${uid}" class="amount-input" placeholder="金額" step="1000">
+                        <button class="btn-add" onclick="modifyBalance('${uid}', 'add')">+ 加值</button>
+                        <button class="btn-set" onclick="modifyBalance('${uid}', 'set')">= 設定</button>
+                    </div>
+                `;
+                listDiv.appendChild(card);
+            });
+        });
+
+        // 修改餘額邏輯
+        window.modifyBalance = function(uid, mode) {
+            const input = document.getElementById(`input-${uid}`);
+            const amount = parseFloat(input.value);
+
+            if (isNaN(amount)) {
+                alert("請輸入有效的數字！");
+                return;
+            }
+
+            const userRef = db.ref('players/' + uid + '/balance');
+
+            if (mode === 'add') {
+                // 加值 (使用 transaction 防止衝突)
+                userRef.transaction((current) => {
+                    return (current || 0) + amount;
+                }, (error, committed) => {
+                    if(committed) showToast(`已增加 ${amount} 給 ${uid}`);
+                });
+            } else if (mode === 'set') {
+                // 直接設定 (Set)
+                userRef.set(amount, (error) => {
+                    if(!error) showToast(`已將 ${uid} 餘額設定為 ${amount}`);
+                });
+            }
+            
+            input.value = ''; // 清空輸入框
+        };
+
+        // 簡單的提示訊息
+        function showToast(msg) {
+            const el = document.getElementById('status-msg');
+            el.innerText = msg;
+            el.style.display = 'block';
+            setTimeout(() => { el.style.display = 'none'; }, 2000);
+        }
+    </script>
+</body>
+</html>
