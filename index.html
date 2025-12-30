@@ -308,6 +308,53 @@
         }
         #auth-modal.active { opacity: 1; pointer-events: all; }
 
+        /* --- [新增] Option Dropdown Menu --- */
+        #option-dropdown {
+            position: absolute;
+            top: 75%; /* 在 header 下方 */
+            right: 10px;
+            width: 180px;
+            background: rgba(30, 33, 48, 0.95);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 12px;
+            padding: 5px 0;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            z-index: 500;
+            
+            /* 動畫設定：預設隱藏 */
+            transform-origin: top right;
+            transform: scale(0.8);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        #option-dropdown.active {
+            transform: scale(1);
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .opt-item {
+            padding: 12px 15px;
+            color: #ccc;
+            font-size: 1.5vh;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .opt-item:active {
+            background: rgba(255, 215, 0, 0.15);
+            color: #fff;
+        }
+
+        .opt-icon { width: 20px; text-align: center; }
+        .opt-divider { height: 1px; background: rgba(255,255,255,0.1); margin: 4px 0; }
+
     </style>
 </head>
 <body>
@@ -330,6 +377,23 @@
                 <img src="+.png" class="plus-btn clickable-btn" alt="+">
             </div>
             <img src="option.png" class="menu-btn clickable-btn" alt="Menu">
+            
+            <div id="option-dropdown">
+                <div class="opt-item" onclick="optAction('support')">
+                    <span class="opt-icon">🎧</span> 聯絡客服
+                </div>
+                <div class="opt-item" onclick="optAction('history')">
+                    <span class="opt-icon">📜</span> 投注紀錄
+                </div>
+                <div class="opt-item" onclick="optAction('lang')">
+                    <span class="opt-icon">🌐</span> 語言: 繁體中文
+                </div>
+                <div class="opt-divider"></div>
+                <div class="opt-item" onclick="optAction('version')">
+                    <span class="opt-icon">ℹ️</span> 版本: v1.0.2
+                </div>
+            </div>
+
         </header>
 
         <div id="ghost-ticker">
@@ -860,6 +924,43 @@
                 ticker.classList.remove('active');
             }, 10000);
         }
+
+        // --- [新增] Option Menu Logic ---
+        const optionBtn = document.querySelector('.menu-btn');
+        const optionDropdown = document.getElementById('option-dropdown');
+
+        // 點擊按鈕：切換選單開關
+        if (optionBtn) {
+            optionBtn.addEventListener('click', (e) => {
+                e.stopPropagation(); // 阻止事件冒泡，避免觸發 document 的點擊關閉
+                optionDropdown.classList.toggle('active');
+            });
+        }
+
+        // 點擊選單內的項目
+        window.optAction = function(type) {
+            optionDropdown.classList.remove('active'); // 點完就關閉
+            
+            if (type === 'support') {
+                alert("正在為您連線線上客服...\n(目前客服忙線中，請稍後)");
+            } else if (type === 'history') {
+                alert("📊 投注紀錄功能開發中\n這裡將會顯示您最近 10 筆遊戲結果。");
+            } else if (type === 'lang') {
+                alert("Language switched to English.\n(介面即將重新載入)");
+            } else if (type === 'version') {
+                alert("Casino Lobby\n版本: v1.0.2 (Beta)\n開發者: ZEND Studio");
+            }
+        }
+
+        // 點擊畫面其他地方：關閉選單
+        document.addEventListener('click', (e) => {
+            if (optionDropdown.classList.contains('active')) {
+                // 如果點擊的不是選單本身，也不是按鈕，就關閉
+                if (!optionDropdown.contains(e.target) && e.target !== optionBtn) {
+                    optionDropdown.classList.remove('active');
+                }
+            }
+        });
 
         // --- 4. Feature Logic ---
         const tabs = document.querySelectorAll('.tab-item');
