@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Casino Lobby - Online</title>
+    <title>Casino Lobby - Rankings Update</title>
     <style>
         /* --- 全局設定 --- */
         :root {
@@ -16,31 +16,19 @@
         /* 1. Body 設定 */
         body {
             background-color: #000;
-            width: 100vw; 
-            height: 100vh;
-            overflow: hidden;
+            width: 100vw; height: 100vh; overflow: hidden;
             font-family: 'Segoe UI', sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            display: flex; justify-content: center; align-items: center;
             background: radial-gradient(circle at center, #333333 0%, #000000 85%);
         }
 
         /* 2. App 容器 */
         .app-container {
-            height: 100%; 
-            aspect-ratio: 9/16;
-            max-width: 100vw; 
-            position: relative; 
-            display: flex;
-            flex-direction: column;
-            background-color: #121212;
-            background-image: url('bg.png');
-            background-size: 100% 100%; 
-            background-repeat: no-repeat;
-            box-shadow: 0 0 50px rgba(0,0,0,0.8);
-            z-index: 1; 
-            overflow: hidden;
+            height: 100%; aspect-ratio: 9/16; max-width: 100vw; 
+            position: relative; display: flex; flex-direction: column;
+            background-color: #121212; background-image: url('bg.png');
+            background-size: 100% 100%; background-repeat: no-repeat;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8); z-index: 1; overflow: hidden;
         }
 
         #lobby-bg-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; mix-blend-mode: screen; }
@@ -76,7 +64,29 @@
         .plus-btn { height: 65%; width: auto; cursor: pointer; flex-shrink: 0;}
         .menu-btn { height: 28%; width: auto; cursor: pointer; margin-left: 8px; flex-shrink: 0;}
 
-        /* --- 底部導航 --- */
+        /* --- [NEW] Ghost Ticker (跑馬燈) --- */
+        #ghost-ticker {
+            position: absolute; top: 11%; left: 50%; transform: translateX(-50%);
+            width: 90%; height: 3.5vh;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.15);
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden; pointer-events: none; z-index: 190;
+            opacity: 0; transition: opacity 0.5s ease;
+        }
+        #ghost-ticker.active { opacity: 1; }
+        .ticker-content {
+            white-space: nowrap; color: #ffd700; font-weight: bold; font-size: 1.4vh;
+            text-shadow: 0 0 5px rgba(0,0,0,0.5);
+            /* 預設不播動畫，由 JS 控制 */
+        }
+        @keyframes scrollText {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-150%); } /* 讓它跑出去多一點 */
+        }
+
+        /* --- 底部導航 (修改為 5 欄位) --- */
         .bottom-nav {
             position: absolute; bottom: 2.5vh; left: 3%; width: 94%; height: 11.7%;
             display: flex; justify-content: space-around; align-items: center; z-index: 200;
@@ -84,7 +94,8 @@
             border-radius: 4vh; 
             box-shadow: 0 15px 35px rgba(0,0,0,0.5), inset 0 0 25px rgba(255, 220, 150, 0.15);
         }
-        .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; cursor: pointer; width: 22%; height: 100%; transition: transform 0.1s; }
+        /* 修改寬度為 20% (100/5) */
+        .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; cursor: pointer; width: 20%; height: 100%; transition: transform 0.1s; }
         .nav-item:active { transform: scale(0.9); }
         .nav-icon { height: 75%; width: auto; object-fit: contain; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.3)); transform: scale(0.85) translateY(2px); transition: transform 0.2s; }
         .nav-label { font-size: 1.6vh; font-weight: 700; color: #aaa; letter-spacing: 0.5px; margin-top: -8px; z-index: 2; text-shadow: 0 1px 2px rgba(0,0,0,0.8); }
@@ -107,31 +118,11 @@
         .main-scroll-area::-webkit-scrollbar { display: none; }
         .main-scroll-area.hidden .game-card:nth-child(odd) { transform: translateX(-120%); opacity: 0; }
         .main-scroll-area.hidden .game-card:nth-child(even) { transform: translateX(120%); opacity: 0; }
-
-        .game-card {
-            width: 80.6%; aspect-ratio: 2/1; margin: 0 auto; position: relative;
-            border-radius: 26px; overflow: hidden; 
-            box-shadow: none !important; border: none !important; background: transparent; 
-            flex-shrink: 0; opacity: 0; 
-            animation: slideIn 0.5s ease-out forwards;
-            cursor: pointer;
-            transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55), opacity 0.3s ease;
-        }
-        .game-card::after {
-            content: ""; position: absolute; top: 0; left: 0; width: 200%; height: 100%;
-            background: linear-gradient(120deg, rgba(255, 255, 255, 0) 30%, rgba(255, 255, 255, 0.4) 50%, rgba(255, 215, 0, 0.2) 55%, rgba(255, 255, 255, 0) 70%);
-            transform: translateX(-150%) skewX(-25deg); pointer-events: none; mix-blend-mode: overlay;
-            animation: shimmer 5s infinite;
-        }
-        .game-card:nth-child(odd)::after { animation-delay: 0s; }
-        .game-card:nth-child(even)::after { animation-delay: 2.5s; }
+        .game-card { width: 80.6%; aspect-ratio: 2/1; margin: 0 auto; position: relative; border-radius: 26px; overflow: hidden; box-shadow: none !important; border: none !important; background: transparent; flex-shrink: 0; opacity: 0; animation: slideIn 0.5s ease-out forwards; cursor: pointer; transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55), opacity 0.3s ease; }
+        .game-card::after { content: ""; position: absolute; top: 0; left: 0; width: 200%; height: 100%; background: linear-gradient(120deg, rgba(255, 255, 255, 0) 30%, rgba(255, 255, 255, 0.4) 50%, rgba(255, 215, 0, 0.2) 55%, rgba(255, 255, 255, 0) 70%); transform: translateX(-150%) skewX(-25deg); pointer-events: none; mix-blend-mode: overlay; animation: shimmer 5s infinite; }
+        .game-card:nth-child(odd)::after { animation-delay: 0s; } .game-card:nth-child(even)::after { animation-delay: 2.5s; }
         .game-img { width: 100%; height: 100%; object-fit: cover; display: block; }
-
-        @keyframes launchSequence {
-            0% { transform: scale(1); filter: brightness(1); opacity: 1; }
-            40% { transform: scale(0.95); filter: brightness(1.3) contrast(1.1) drop-shadow(0 0 30px rgba(255, 215, 0, 0.8)); opacity: 1; }
-            100% { transform: scale(1.15); filter: brightness(1.5) drop-shadow(0 0 60px rgba(255, 215, 0, 0)); opacity: 0; }
-        }
+        @keyframes launchSequence { 0% { transform: scale(1); filter: brightness(1); opacity: 1; } 40% { transform: scale(0.95); filter: brightness(1.3) contrast(1.1) drop-shadow(0 0 30px rgba(255, 215, 0, 0.8)); opacity: 1; } 100% { transform: scale(1.15); filter: brightness(1.5) drop-shadow(0 0 60px rgba(255, 215, 0, 0)); opacity: 0; } }
         .game-card.launching { opacity: 1 !important; animation: launchSequence 0.5s ease-in-out forwards; z-index: 999; pointer-events: none; }
         .game-card.launching::after { opacity: 0; transition: opacity 0.1s; }
         @keyframes slideIn { 0% { opacity: 0; transform: translateY(80px); } 70% { opacity: 1; transform: translateY(-5px); } 100% { opacity: 1; transform: translateY(0); } }
@@ -140,10 +131,8 @@
 
 
         /* ========================================= */
-        /* --- PANEL STYLES (Slots / Rewards / Profile) --- */
+        /* --- PANEL STYLES --- */
         /* ========================================= */
-        
-        /* Shared Panel Base */
         .dashboard-panel {
             position: absolute; top: 48%; left: 50%; height: 72%; width: 90%;
             background: var(--panel-bg); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
@@ -155,45 +144,23 @@
         }
         .dashboard-panel.active { opacity: 1; pointer-events: all; transform: translate(-50%, -50%) scale(1); }
 
-        /* Panel Header */
-        .panel-header {
-            height: 10%; display: flex; justify-content: space-around; align-items: center;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding: 0 10px; flex-shrink: 0;
-        }
+        .panel-header { height: 10%; display: flex; justify-content: space-around; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding: 0 10px; flex-shrink: 0; }
         .tab-item { color: #888; font-size: 1.6vh; font-weight: 700; cursor: pointer; position: relative; padding: 5px 0; transition: color 0.3s; }
         .tab-item.active { color: var(--text-gold); text-shadow: 0 0 10px rgba(244, 208, 111, 0.5); }
         .tab-item.active::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 2px; background: var(--text-gold); box-shadow: 0 0 5px var(--text-gold); }
-
-        /* Panel Footer */
-        .panel-footer {
-            height: 14%; display: flex; justify-content: center; align-items: center;
-            padding: 0 20px; border-top: 1px solid rgba(255, 255, 255, 0.1); flex-shrink: 0;
-        }
-        .close-gold-btn {
-            background: linear-gradient(180deg, #ffeebb 0%, #aa8741 50%, #75551d 100%);
-            border: 1px solid #ffd700; border-radius: 20px; padding: 8px 45px; 
-            color: #422100; font-weight: 800; font-size: 1.8vh; letter-spacing: 1px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5); cursor: pointer; transition: transform 0.1s;
-        }
+        .panel-footer { height: 14%; display: flex; justify-content: center; align-items: center; padding: 0 20px; border-top: 1px solid rgba(255, 255, 255, 0.1); flex-shrink: 0; }
+        .close-gold-btn { background: linear-gradient(180deg, #ffeebb 0%, #aa8741 50%, #75551d 100%); border: 1px solid #ffd700; border-radius: 20px; padding: 8px 45px; color: #422100; font-weight: 800; font-size: 1.8vh; letter-spacing: 1px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); cursor: pointer; transition: transform 0.1s; }
         .close-gold-btn:active { transform: scale(0.95); filter: brightness(1.1); }
-
-        /* Panel Content Area */
         .panel-content { flex: 1; padding: 15px 10px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #aa8741 rgba(255, 255, 255, 0.1); }
-        .panel-content::-webkit-scrollbar { width: 5px; }
-        .panel-content::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); border-radius: 10px; }
-        .panel-content::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #aa8741, #cbbd83); border-radius: 10px; }
+        .panel-content::-webkit-scrollbar { width: 5px; } .panel-content::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); border-radius: 10px; } .panel-content::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #aa8741, #cbbd83); border-radius: 10px; }
 
-        /* --- Slots Grid --- */
+        /* Slots Grid */
         .slots-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; }
-        .slot-icon {
-            width: 100%; aspect-ratio: 2/1; border-radius: 8px; overflow: hidden;
-            background: #000; position: relative; border: 1px solid rgba(255, 255, 255, 0.15);
-            transition: transform 0.1s;
-        }
+        .slot-icon { width: 100%; aspect-ratio: 2/1; border-radius: 8px; overflow: hidden; background: #000; position: relative; border: 1px solid rgba(255, 255, 255, 0.15); transition: transform 0.1s; }
         .slot-icon:active { transform: scale(0.9); border-color: var(--text-gold); }
         .slot-thumb { width: 100%; height: 100%; object-fit: cover; }
 
-        /* --- Rewards Styles --- */
+        /* Rewards Styles */
         .rewards-tabs { height: 12%; display: flex; align-items: center; justify-content: center; gap: 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding: 0 10px; }
         .r-tab-btn { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: #aaa; padding: 6px 16px; border-radius: 20px; font-size: 1.5vh; font-weight: 700; cursor: pointer; transition: all 0.2s; }
         .r-tab-btn.active { background: linear-gradient(180deg, #ffeebb 0%, #aa8741 100%); border-color: #ffd700; color: #422100; box-shadow: 0 0 10px rgba(255, 215, 0, 0.3); }
@@ -202,7 +169,7 @@
         .r-view.active { display: flex; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Daily Check-in */
+        /* Daily/Mail/Gift Styles (Keep Same) */
         .daily-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; height: 100%; align-content: start; }
         .day-box { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; aspect-ratio: 1/1.1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden; }
         .day-box.day-7 { grid-column: 1 / -1; aspect-ratio: 3/1; background: linear-gradient(45deg, rgba(255,215,0,0.1), rgba(255,0,0,0.1)); border: 1px solid rgba(255,215,0,0.3); }
@@ -214,8 +181,6 @@
         .day-box.active { border-color: #ffd700; background: rgba(255, 215, 0, 0.1); cursor: pointer; animation: pulseBox 1.5s infinite; }
         .day-box.active .day-val { color: #ffd700; text-shadow: 0 0 5px orange; }
         @keyframes pulseBox { 0% { transform: scale(1); } 50% { transform: scale(1.02); box-shadow: 0 0 15px rgba(255,215,0,0.3); } 100% { transform: scale(1); } }
-
-        /* Mailbox */
         .mail-list { display: flex; flex-direction: column; gap: 8px; }
         .mail-item { background: rgba(255,255,255,0.05); border-radius: 10px; padding: 12px; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: background 0.2s; border-left: 3px solid transparent; }
         .mail-item:active { background: rgba(255,255,255,0.1); }
@@ -225,8 +190,6 @@
         .mail-title { color: #fff; font-size: 1.6vh; font-weight: bold; margin-bottom: 2px; }
         .mail-date { color: #666; font-size: 1.2vh; }
         .mail-status { font-size: 1.2vh; color: #aaa; }
-
-        /* Gifting */
         .gift-container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; gap: 20px; }
         .gift-input-group { width: 100%; }
         .gift-label { color: #aaa; font-size: 1.4vh; margin-bottom: 5px; display: block; text-align: left; padding-left: 10px; }
@@ -254,6 +217,28 @@
         .setting-label { color: #fff; font-size: 1.6vh; }
         .logout-btn { margin: 20px; padding: 12px; border-radius: 10px; background: rgba(255, 69, 0, 0.2); border: 1px solid rgba(255, 69, 0, 0.5); color: #ff4500; font-weight: bold; text-align: center; cursor: pointer; transition: all 0.2s; }
         .logout-btn:active { background: rgba(255, 69, 0, 0.4); transform: scale(0.98); }
+
+        /* --- [NEW] Rankings Panel Styles --- */
+        .rank-list { padding: 15px; display: flex; flex-direction: column; gap: 10px; }
+        .rank-item {
+            display: flex; align-items: center;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 12px 15px; border-radius: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .rank-num {
+            width: 30px; font-size: 2vh; font-weight: 900; color: #888; text-align: center;
+        }
+        /* 前三名特別色 */
+        .rank-item:nth-child(1) .rank-num { color: #ffd700; text-shadow: 0 0 10px #ffd700; font-size: 2.5vh; }
+        .rank-item:nth-child(2) .rank-num { color: #c0c0c0; text-shadow: 0 0 5px #c0c0c0; }
+        .rank-item:nth-child(3) .rank-num { color: #cd7f32; text-shadow: 0 0 5px #cd7f32; }
+
+        .rank-avatar { width: 35px; height: 35px; border-radius: 50%; margin: 0 15px; border: 1px solid #555; object-fit: cover; }
+        .rank-info { flex: 1; }
+        .rank-name { color: #fff; font-weight: bold; font-size: 1.6vh; }
+        .rank-vip { font-size: 1.2vh; background: #333; color: #ffd700; padding: 2px 6px; border-radius: 4px; display: inline-block; margin-top: 2px; }
+        .rank-val { color: #00ff00; font-weight: bold; font-size: 1.6vh; }
 
         /* --- Wallet Modal --- */
         #wallet-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
@@ -307,6 +292,10 @@
             </div>
             <img src="option.png" class="menu-btn clickable-btn" alt="Menu">
         </header>
+
+        <div id="ghost-ticker">
+            <div class="ticker-content" id="ticker-text"></div>
+        </div>
 
         <main class="main-scroll-area">
             <div class="game-card" id="game-dragon"><img src="game001.png" class="game-img" alt="Dragon"></div>
@@ -411,6 +400,22 @@
             </div>
         </div>
 
+        <div id="rankings-panel" class="dashboard-panel gradient-border-box">
+            <div class="profile-header">
+                <img src="Rankings.png" style="width: 60px; height: auto;">
+                <h2 style="color: #ffd700; margin: 5px 0 0 0;">富豪排行榜</h2>
+                <div style="color:#888; font-size:1.2vh;">Top Wealthy Players</div>
+            </div>
+            <div class="panel-content">
+                <div class="rank-list" id="rank-list-content">
+                    <div style="text-align:center; color:#888;">載入中...</div>
+                </div>
+            </div>
+            <div class="panel-footer">
+                <div class="close-gold-btn" id="close-rankings-btn">CLOSE</div>
+            </div>
+        </div>
+
         <div id="wallet-modal">
             <div class="wallet-box">
                 <div class="w-header"><div class="w-title">儲值中心</div><div class="w-balance">當前餘額: ---</div></div>
@@ -435,6 +440,10 @@
             <div class="nav-item" id="nav-slots">
                 <img src="games.png" class="nav-icon" alt="Slots">
                 <span class="nav-label">Slots</span>
+            </div>
+            <div class="nav-item" id="nav-rankings">
+                <img src="Rankings.png" class="nav-icon" alt="Rankings">
+                <span class="nav-label">Rank</span>
             </div>
             <div class="nav-item" id="nav-rewards">
                 <img src="events.png" class="nav-icon" alt="Rewards">
@@ -478,32 +487,24 @@
         let myUserId = localStorage.getItem('casino_firebase_uid');
 
         function initUser() {
-            // 檢查是否已有 ID
             if (!myUserId) {
-                // 新玩家：產生 ID 並存入 localStorage
                 myUserId = 'user_' + Math.floor(10000000 + Math.random() * 90000000);
                 localStorage.setItem('casino_firebase_uid', myUserId);
-                
-                // 詢問暱稱 (如果使用者取消，預設為 Guest)
                 let name = prompt("歡迎來到 Casino Lobby！\n請輸入您的暱稱：") || "Guest";
-                
-                // 寫入 Firebase
                 db.ref('players/' + myUserId).set({
                     name: name,
-                    balance: 10000, // 新手體驗金
+                    balance: 10000,
                     vip: 1,
                     joinedAt: Date.now()
                 });
             }
 
-            // 監聽 Firebase 資料變化 (即時更新 UI)
             db.ref('players/' + myUserId).on('value', (snapshot) => {
                 const data = snapshot.val();
                 if (data) {
                     currentUser = data;
                     updateUserUI();
                 } else {
-                    // 如果 ID 存在但 DB 沒資料 (例如被手動刪除)，重新建立
                     let name = prompt("資料遺失，請重新輸入暱稱：") || "Guest";
                     db.ref('players/' + myUserId).set({
                         name: name,
@@ -512,24 +513,26 @@
                     });
                 }
             });
+
+            // [NEW] 監聽系統跑馬燈廣播
+            db.ref('system/ticker').on('value', (snapshot) => {
+                const msg = snapshot.val();
+                if(msg) {
+                    showGhostTicker(msg);
+                }
+            });
         }
 
         function updateUserUI() {
             if(!currentUser) return;
-            // Top Bar
             document.querySelector('.coin-number').innerText = currentUser.balance.toLocaleString('en-US', {minimumFractionDigits: 2});
             document.querySelector('.vip-text').innerText = "VIP." + currentUser.vip;
-            
-            // Profile Panel
             document.querySelector('.p-name').innerText = currentUser.name;
             document.querySelector('.p-id').innerText = "ID: " + myUserId;
-            
-            // Wallet Modal
             document.querySelector('.w-balance').innerText = "當前餘額: " + currentUser.balance.toLocaleString('en-US', {minimumFractionDigits: 2});
         }
 
         function updateUserBalance(amount) {
-            // 使用 Firebase 的交易功能來確保數字準確 (避免併發問題)
             db.ref('players/' + myUserId + '/balance').transaction((currentBalance) => {
                 return (currentBalance || 0) + amount;
             });
@@ -549,10 +552,12 @@
         const slotsPanel = document.getElementById('slots-panel');
         const rewardsPanel = document.getElementById('rewards-panel');
         const profilePanel = document.getElementById('profile-panel');
+        const rankingsPanel = document.getElementById('rankings-panel'); // [NEW]
         
         const closeSlotsBtn = document.getElementById('close-slots-btn');
         const closeRewardsBtn = document.getElementById('close-rewards-btn');
         const closeProfileBtn = document.getElementById('close-profile-btn');
+        const closeRankingsBtn = document.getElementById('close-rankings-btn'); // [NEW]
         
         const navHome = document.getElementById('nav-home');
         
@@ -569,20 +574,21 @@
                 if (item.id === 'nav-slots') openPanel(slotsPanel);
                 else if (item.id === 'nav-rewards') openPanel(rewardsPanel);
                 else if (item.id === 'nav-profile') openPanel(profilePanel);
+                else if (item.id === 'nav-rankings') openRankingsPanel(); // [NEW]
                 else closeAllPanels();
             });
         });
 
         function openPanel(targetPanel) {
             mainScroll.classList.add('hidden');
-            [slotsPanel, rewardsPanel, profilePanel].forEach(p => {
+            [slotsPanel, rewardsPanel, profilePanel, rankingsPanel].forEach(p => {
                 if(p !== targetPanel) p.classList.remove('active');
             });
             setTimeout(() => { targetPanel.classList.add('active'); }, 200);
         }
 
         function closeAllPanels() {
-            [slotsPanel, rewardsPanel, profilePanel].forEach(p => p.classList.remove('active'));
+            [slotsPanel, rewardsPanel, profilePanel, rankingsPanel].forEach(p => p.classList.remove('active'));
             setTimeout(() => { mainScroll.classList.remove('hidden'); }, 200);
             navItems.forEach(i => i.classList.remove('active'));
             navHome.classList.add('active');
@@ -591,6 +597,60 @@
         closeSlotsBtn.addEventListener('click', closeAllPanels);
         closeRewardsBtn.addEventListener('click', closeAllPanels);
         closeProfileBtn.addEventListener('click', closeAllPanels);
+        closeRankingsBtn.addEventListener('click', closeAllPanels); // [NEW]
+
+        // --- [NEW] Rankings Logic ---
+        function openRankingsPanel() {
+            openPanel(rankingsPanel);
+            const listDiv = document.getElementById('rank-list-content');
+            listDiv.innerHTML = '<div style="text-align:center; color:#888;">正在讀取數據...</div>';
+
+            // 讀取所有玩家資料，只取一次
+            db.ref('players').orderByChild('balance').limitToLast(10).once('value', (snapshot) => {
+                listDiv.innerHTML = '';
+                const players = [];
+                snapshot.forEach(child => {
+                    players.push(child.val());
+                });
+                // Firebase 排序是升序，所以要反轉 (最有錢在最前面)
+                players.reverse();
+
+                players.forEach((p, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'rank-item';
+                    item.innerHTML = `
+                        <div class="rank-num">${index + 1}</div>
+                        <img src="player.png" class="rank-avatar">
+                        <div class="rank-info">
+                            <div class="rank-name">${p.name}</div>
+                            <div class="rank-vip">VIP.${p.vip || 1}</div>
+                        </div>
+                        <div class="rank-val">${(p.balance || 0).toLocaleString()}</div>
+                    `;
+                    listDiv.appendChild(item);
+                });
+            });
+        }
+
+        // --- [NEW] Ghost Ticker Logic ---
+        function showGhostTicker(msg) {
+            const ticker = document.getElementById('ghost-ticker');
+            const text = document.getElementById('ticker-text');
+            text.innerText = msg;
+            text.style.animation = 'none'; // 重置動畫
+            ticker.offsetHeight; // 觸發重繪
+            ticker.classList.add('active');
+            
+            // 開始捲動動畫 (假設文字很長，跑 10秒)
+            setTimeout(() => {
+                text.style.animation = 'scrollText 10s linear forwards';
+            }, 100);
+
+            // 10秒後自動消失
+            setTimeout(() => {
+                ticker.classList.remove('active');
+            }, 10000);
+        }
 
         // --- 4. Feature Logic ---
         const tabs = document.querySelectorAll('.tab-item');
@@ -644,7 +704,6 @@
 
         // --- 5. Game Integration (Cross-window) ---
         window.addEventListener('message', (event) => {
-            // 1. 接收關閉訊號
             if (event.data === 'closeGame') {
                 const overlay = document.getElementById('transition-overlay');
                 const gameContainer = document.getElementById('game-container');
@@ -656,15 +715,10 @@
                     if(iframe) iframe.remove(); 
                     if(dragonCard) dragonCard.classList.remove('launching');
                     overlay.classList.remove('active'); 
-                    
-                    // 回大廳時，主動抓取最新資料 (雖然 on value 會自動做，但多一層保險)
                     if(myUserId) db.ref('players/' + myUserId).once('value');
                 }, 500);
             }
-            
-            // 2. 接收金幣同步訊號 (從遊戲傳來的絕對值)
             if (event.data.type === 'updateBalance') {
-                // 將遊戲內的最新餘額寫入 Firebase
                 db.ref('players/' + myUserId).update({
                     balance: event.data.value
                 });
@@ -672,7 +726,7 @@
         });
 
         document.addEventListener('DOMContentLoaded', () => {
-            initUser(); // Start Firebase User System
+            initUser(); 
 
             const dragonCard = document.getElementById('game-dragon');
             const overlay = document.getElementById('transition-overlay');
@@ -695,7 +749,6 @@
                             gameContainer.appendChild(iframe);
                             gameContainer.style.display = 'block';
                             
-                            // iframe 載入後，傳送初始餘額
                             iframe.onload = () => { 
                                 if(currentUser) {
                                     iframe.contentWindow.postMessage({
