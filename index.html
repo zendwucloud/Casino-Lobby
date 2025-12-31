@@ -59,21 +59,13 @@
         .avatar-img { height: 5.5vh; width: 5.5vh; border-radius: 50%; object-fit: cover; border: 2px solid #333; transition: border-color 0.3s; }
         .vip-text { color: var(--text-gold); font-weight: 800; font-size: 1.8vh; letter-spacing: 0.5px; transition: color 0.3s; }
         
-        /* ★ [修改] 玻璃凹槽質感 Coin Bar */
         .coin-bar { 
             flex: 1; height: 55%; 
             display: flex; align-items: center; justify-content: space-between; 
-            
-            /* 玻璃質感與凹槽設定 */
-            background: rgba(0, 0, 0, 0.4); /* 深色半透明底 */
-            border: 1px solid rgba(255, 255, 255, 0.3); /* 1px 亮灰色邊框 */
+            background: rgba(0, 0, 0, 0.4); 
+            border: 1px solid rgba(255, 255, 255, 0.3); 
             border-radius: 50px; 
-            
-            /* 內陰影創造凹陷感 + 外光暈 */
-            box-shadow: 
-                inset 0 3px 8px rgba(0, 0, 0, 0.8),  /* 上方內陰影，製造深度 */
-                0 0 10px rgba(255, 255, 255, 0.15);  /* 外部淡淡的白色光暈 */
-            
+            box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.8), 0 0 10px rgba(255, 255, 255, 0.15);  
             backdrop-filter: blur(5px);
             padding: 0 8px 0 6px; 
             min-width: 0; 
@@ -89,11 +81,11 @@
         
         .coin-number { 
             color: var(--text-white); 
-            font-weight: 700; /* 稍微加粗一點 */
+            font-weight: 700; 
             font-size: 3.5vh; 
             margin-right: 8px; margin-top: -4px; 
             letter-spacing: 0.5px; white-space: nowrap; 
-            text-shadow: 0 2px 4px rgba(0,0,0,0.8); /* 文字加深陰影，增加立體感 */
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8); 
             overflow: hidden; text-overflow: ellipsis; line-height: 1.1; 
         }
         
@@ -227,7 +219,8 @@
         .rewards-tabs { height: 12%; display: flex; align-items: center; justify-content: center; gap: 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding: 0 10px; }
         .r-tab-btn { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: #aaa; padding: 6px 16px; border-radius: 20px; font-size: 1.5vh; font-weight: 700; cursor: pointer; transition: all 0.2s; }
         .r-tab-btn.active { background: linear-gradient(180deg, #ffeebb 0%, #aa8741 100%); border-color: #ffd700; color: #422100; box-shadow: 0 0 10px rgba(255, 215, 0, 0.3); }
-        .rewards-content-area { flex: 1; padding: 15px; overflow-y: auto; position: relative; }
+        /* ★ [修正] 類別名稱統一為 rewards-content 以配合 JS 邏輯，並設定 flex:1 確保 Footer 置底 */
+        .rewards-content { flex: 1; padding: 15px; overflow-y: auto; position: relative; }
         .r-view { display: none; height: 100%; flex-direction: column; animation: fadeIn 0.3s; }
         .r-view.active { display: flex; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
@@ -240,32 +233,69 @@
         .day-coin-img { width: 50%; height: auto; margin-bottom: 5px; filter: drop-shadow(0 0 5px rgba(255,215,0,0.5)); }
         .day-val { font-size: 1.6vh; color: #fff; font-weight: 800; }
         
-        /* 狀態樣式：已領取 (灰) */
         .day-box.claimed { opacity: 0.5; filter: grayscale(1); }
         .day-box.claimed::after { content: "✔"; position: absolute; font-size: 3vh; color: #00ff00; text-shadow: 0 0 5px #000; font-weight: 900; }
-        
-        /* 狀態樣式：可領取 (亮) */
         .day-box.active { border-color: #ffd700; background: rgba(255, 215, 0, 0.1); cursor: pointer; animation: pulseBox 1.5s infinite; opacity: 1; filter: grayscale(0); }
         .day-box.active .day-val { color: #ffd700; text-shadow: 0 0 5px orange; }
-        
-        /* 狀態樣式：等待中 (暗) */
         .day-box.normal { opacity: 0.4; filter: grayscale(0.8); pointer-events: none; }
 
         @keyframes pulseBox { 0% { transform: scale(1); } 50% { transform: scale(1.02); box-shadow: 0 0 15px rgba(255,215,0,0.3); } 100% { transform: scale(1); } }
+        
+        /* ★ [修改] 信箱樣式優化 */
         .mail-list { display: flex; flex-direction: column; gap: 8px; }
-        .mail-item { background: rgba(255,255,255,0.05); border-radius: 10px; padding: 12px; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: background 0.2s; border-left: 3px solid transparent; }
+        .mail-item { 
+            background: rgba(255,255,255,0.05); border-radius: 10px; padding: 12px; 
+            display: flex; align-items: center; gap: 10px; cursor: pointer; 
+            transition: all 0.2s; border-left: 3px solid transparent; 
+            justify-content: space-between; /* 讓刪除按鈕靠右 */
+        }
         .mail-item:active { background: rgba(255,255,255,0.1); }
+        
+        /* 未讀狀態 */
         .mail-item.unread { border-left: 3px solid #ff4500; background: rgba(255, 69, 0, 0.1); }
+        .mail-item.unread .mail-title { color: #fff; text-shadow: 0 0 5px rgba(255,69,0,0.5); }
+        .mail-item.unread .mail-icon { filter: drop-shadow(0 0 5px orange); }
+
+        /* 已讀狀態 (灰色) */
+        .mail-item.read { 
+            background: rgba(0,0,0,0.2); 
+            border-left: 3px solid #666; 
+            opacity: 0.7; 
+            filter: grayscale(0.8); 
+        }
+        .mail-item.read .mail-title { color: #aaa; }
+
+        .mail-content-wrapper { display: flex; align-items: center; gap: 10px; flex: 1; } /* 包裹內容區，點擊讀取 */
         .mail-icon { font-size: 2.5vh; }
         .mail-info { flex: 1; }
         .mail-title { color: #fff; font-size: 1.6vh; font-weight: bold; margin-bottom: 2px; }
         .mail-date { color: #666; font-size: 1.2vh; }
         .mail-status { font-size: 1.2vh; color: #aaa; }
+
+        /* 刪除按鈕 */
+        .mail-delete-btn {
+            padding: 5px 10px; background: rgba(255, 0, 0, 0.2); border-radius: 5px; 
+            color: #ff4444; font-size: 1.4vh; border: 1px solid rgba(255,0,0,0.3);
+            cursor: pointer; z-index: 2;
+        }
+        .mail-delete-btn:active { background: rgba(255,0,0,0.5); color: #fff; }
+
+        /* 寫信區塊樣式 */
+        .compose-btn-container { text-align: right; margin-bottom: 10px; }
+        .compose-btn { 
+            background: linear-gradient(90deg, #4b6cb7 0%, #182848 100%); 
+            border: 1px solid #6a82fb; padding: 6px 12px; border-radius: 15px; 
+            color: white; font-size: 1.4vh; cursor: pointer; 
+        }
+        #view-compose { display: none; height: 100%; flex-direction: column; }
+        #view-compose.active { display: flex; }
+
         .gift-container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; gap: 20px; }
         .gift-input-group { width: 100%; }
         .gift-label { color: #aaa; font-size: 1.4vh; margin-bottom: 5px; display: block; text-align: left; padding-left: 10px; }
         .gift-input { width: 100%; padding: 12px; border-radius: 10px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: #fff; font-size: 1.6vh; outline: none; }
         .gift-input:focus { border-color: #ffd700; }
+        .gift-textarea { height: 100px; resize: none; }
         .send-btn { width: 100%; padding: 12px; border-radius: 10px; background: linear-gradient(90deg, #ff4500, #ff8c00); color: white; font-weight: bold; border: none; font-size: 1.8vh; cursor: pointer; box-shadow: 0 4px 10px rgba(255, 69, 0, 0.4); }
         .send-btn:active { transform: scale(0.95); filter: brightness(0.8); }
 
@@ -350,7 +380,6 @@
         /* --- [Visual Upgraded] Auth Modal Styles --- */
         #auth-modal { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            /* 修改背景透明度，讓底下的 Lobby 背景能透出來 */
             background: rgba(0,0,0,0.6); 
             backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
             z-index: 30000; 
@@ -359,7 +388,6 @@
         }
         #auth-modal.active { opacity: 1; pointer-events: all; }
 
-        /* 新增登入按鈕區域的樣式調整 */
         .auth-actions-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -368,7 +396,7 @@
         }
         .btn-full-width {
             width: 100%;
-            grid-column: 1 / -1; /* 跨滿兩欄 */
+            grid-column: 1 / -1; 
         }
 
         /* --- Option Dropdown Menu --- */
@@ -394,6 +422,8 @@
 
     <audio id="bgm_lobby" src="bgm_lobby.mp3" loop preload="auto"></audio>
     <audio id="sfx_click" src="sfx_click.mp3" preload="auto"></audio>
+    <audio id="sfx_take" src="take.mp3" preload="auto"></audio>
+    <audio id="sfx_money" src="money.mp3" preload="auto"></audio>
 
     <div class="app-container">
         
@@ -429,7 +459,7 @@
                     <span class="opt-icon">👋</span> 登出帳號
                 </div>
                 <div class="opt-item" onclick="optAction('version')">
-                    <span class="opt-icon">ℹ️</span> 版本: v1.3.3
+                    <span class="opt-icon">ℹ️</span> 版本: v1.4.0
                 </div>
             </div>
 
@@ -479,7 +509,7 @@
         <div id="rewards-panel" class="dashboard-panel gradient-border-box">
             <div class="rewards-tabs">
                 <div class="r-tab-btn active" onclick="switchRewardTab('daily')">每日簽到</div>
-                <div class="r-tab-btn" onclick="switchRewardTab('mail')">信箱 (2)</div>
+                <div class="r-tab-btn" onclick="switchRewardTab('mail')">信箱</div>
                 <div class="r-tab-btn" onclick="switchRewardTab('gift')">送禮</div>
             </div>
 
@@ -491,23 +521,27 @@
                 </div>
 
                 <div id="view-mail" class="r-view">
-                    <div class="mail-list">
-                        <div class="mail-item unread" id="mail-001" onclick="readMail(this, 'mail-001', 500)">
-                            <div class="mail-icon">🎁</div>
-                            <div class="mail-info">
-                                <div class="mail-title">維護補償獎勵</div>
-                                <div class="mail-date">2025/12/30 14:00</div>
-                            </div>
-                            <div class="mail-status">未讀</div>
+                    <div class="compose-btn-container">
+                        <button class="compose-btn" onclick="toggleComposeView(true)">✍️ 寫信</button>
+                    </div>
+                    <div class="mail-list" id="mail-list-container">
+                        <div style="text-align:center; color:#888; padding:20px;">載入信件中...</div>
+                    </div>
+                </div>
+
+                <div id="view-compose" class="r-view">
+                    <div class="gift-container">
+                        <h3 style="color:#fff;">寄信給好友</h3>
+                        <div class="gift-input-group">
+                            <span class="gift-label">收件人暱稱</span>
+                            <input type="text" id="compose-to" class="gift-input" placeholder="輸入玩家暱稱...">
                         </div>
-                        <div class="mail-item unread" id="mail-002" onclick="readMail(this, 'mail-002', 1000)">
-                            <div class="mail-icon">🔥</div>
-                            <div class="mail-info">
-                                <div class="mail-title">火龍祕寶 - 新機上線!</div>
-                                <div class="mail-date">2025/12/29 09:00</div>
-                            </div>
-                            <div class="mail-status">未讀</div>
+                        <div class="gift-input-group">
+                            <span class="gift-label">信件內容</span>
+                            <textarea id="compose-msg" class="gift-input gift-textarea" placeholder="想說些什麼..."></textarea>
                         </div>
+                        <button class="send-btn" onclick="sendUserMail()">發送郵件</button>
+                        <button class="w-btn cancel" onclick="toggleComposeView(false)" style="margin-top:10px;">返回列表</button>
                     </div>
                 </div>
 
@@ -664,7 +698,6 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
     <script>
-        // --- 1. Firebase Configuration & Initialization ---
         const firebaseConfig = {
             apiKey: "AIzaSyA13JH6n_YRY2Rtiuq2u3iN4mEe5cQL8Bo",
             authDomain: "casino-lobby-123f5.firebaseapp.com",
@@ -679,7 +712,6 @@
         }
         const db = firebase.database();
 
-        // --- 2. User Logic with Firebase (全新帳號密碼版) ---
         let currentUser = null;
         let myUserId = localStorage.getItem('casino_firebase_uid');
         let guestSessionId = sessionStorage.getItem('casino_guest_id');
@@ -688,22 +720,23 @@
         const LobbyAudio = {
             bgm: document.getElementById('bgm_lobby'),
             sfxClick: document.getElementById('sfx_click'),
+            sfxTake: document.getElementById('sfx_take'),
+            sfxMoney: document.getElementById('sfx_money'),
             isMuted: false,
-            hasInteracted: false, // 瀏覽器政策：需要互動後才能播音
+            hasInteracted: false, 
 
             init: function() {
-                // 嘗試從本地讀取設定
                 const savedMute = localStorage.getItem('lobby_mute');
                 if (savedMute === 'true') {
                     this.isMuted = true;
                     document.getElementById('bgm-toggle').checked = false;
                 }
                 
-                // 設置初始音量
                 if(this.bgm) this.bgm.volume = 0.5;
                 if(this.sfxClick) this.sfxClick.volume = 1.0;
+                if(this.sfxTake) this.sfxTake.volume = 1.0;
+                if(this.sfxMoney) this.sfxMoney.volume = 1.0;
 
-                // 綁定全域點擊事件來啟動音樂 (只執行一次)
                 document.body.addEventListener('click', () => {
                     if (!this.hasInteracted) {
                         this.hasInteracted = true;
@@ -711,7 +744,6 @@
                     }
                 }, { once: true });
                 
-                // 綁定 Toggle 開關
                 const toggle = document.getElementById('bgm-toggle');
                 if(toggle) {
                     toggle.addEventListener('change', (e) => {
@@ -719,17 +751,12 @@
                     });
                 }
 
-                // ★ [新增] 自動淡出效果 (Fade Out)
                 this.bgm.addEventListener('timeupdate', () => {
                     if(!this.bgm.duration) return;
                     const timeLeft = this.bgm.duration - this.bgm.currentTime;
-                    
-                    // 最後 5 秒開始變小聲
                     if(timeLeft <= 5) {
-                        // 音量從 0.5 慢慢降到 0
                         this.bgm.volume = Math.max(0, timeLeft / 5 * 0.5); 
                     } else if (this.bgm.volume < 0.5 && !this.isMuted) {
-                        // 確保其他時間音量是正常的 0.5
                         this.bgm.volume = 0.5;
                     }
                 });
@@ -748,6 +775,20 @@
                 }
             },
 
+            playTake: function() { 
+                if (!this.isMuted && this.sfxTake) {
+                    this.sfxTake.currentTime = 0;
+                    this.sfxTake.play().catch(()=>{});
+                }
+            },
+
+            playMoney: function() { 
+                if (!this.isMuted && this.sfxMoney) {
+                    this.sfxMoney.currentTime = 0;
+                    this.sfxMoney.play().catch(()=>{});
+                }
+            },
+
             toggleMute: function(muteState) {
                 this.isMuted = muteState;
                 localStorage.setItem('lobby_mute', muteState);
@@ -759,22 +800,16 @@
             }
         };
 
-        // ★ 修改：綁定所有按鈕的點擊音效 (改為 pointerdown 加速反應)
         document.addEventListener('pointerdown', (e) => {
-            // 只要是按鈕或可點擊元素
-            if (e.target.closest('.clickable-btn, .nav-item, .w-btn, .close-gold-btn, .game-card, .r-tab-btn, .w-option, .opt-item, .mail-item')) {
+            if (e.target.closest('.clickable-btn, .nav-item, .w-btn, .close-gold-btn, .game-card, .r-tab-btn, .w-option, .opt-item, .mail-item, .send-btn, .compose-btn, .mail-delete-btn')) {
                 LobbyAudio.playClick();
             }
         });
 
-        // 啟動 Audio
         LobbyAudio.init();
-
 
         function initUser() {
             const authModal = document.getElementById('auth-modal');
-            
-            // 優先檢查正式登入
             if (myUserId) {
                 db.ref('players/' + myUserId).once('value', (snapshot) => {
                     const data = snapshot.val();
@@ -784,23 +819,17 @@
                         startTickerListener(); 
                         listenUserData(); 
                     } else {
-                        // 舊資料無效，顯示登入框
                         localStorage.removeItem('casino_firebase_uid');
                         showAuthModalWithDelay();
                     }
                 });
-            } 
-            // 其次檢查是否為訪客
-            else if (guestSessionId) {
+            } else if (guestSessionId) {
                 db.ref('players/' + guestSessionId).once('value', (snapshot) => {
                     const data = snapshot.val();
                     if(data) {
                         myUserId = guestSessionId;
                         currentUser = data;
-                        
-                        // ★ [重要] 訪客斷線自動刪除機制 (重新綁定)
                         db.ref('players/' + guestSessionId).onDisconnect().remove();
-
                         updateUserUI();
                         startTickerListener();
                         listenUserData();
@@ -809,9 +838,7 @@
                         showAuthModalWithDelay();
                     }
                 });
-            }
-            else {
-                // 完全沒登入
+            } else {
                 showAuthModalWithDelay();
             }
         }
@@ -853,7 +880,6 @@
             });
         }
 
-        // ★ [修正] 訪客登入 (加入自動刪除機制)
         window.doGuestLogin = function() {
             const guestId = 'guest_' + Date.now();
             const guestUser = {
@@ -868,10 +894,7 @@
                     sessionStorage.setItem('casino_guest_id', guestId);
                     myUserId = guestId;
                     currentUser = guestUser;
-                    
-                    // ★ 設定斷線自動刪除
                     db.ref('players/' + guestId).onDisconnect().remove();
-
                     document.getElementById('auth-modal').classList.remove('active');
                     updateUserUI();
                     startTickerListener();
@@ -926,7 +949,7 @@
                 return;
             }
             if(element.classList.contains('claimed')) return; 
-            if(element.classList.contains('normal')) return; // 鎖定狀態不可點
+            if(element.classList.contains('normal')) return;
 
             const today = new Date().setHours(0,0,0,0);
             const lastDate = currentUser.lastLoginDate || 0;
@@ -958,12 +981,12 @@
                 lastLoginDate: today,
                 loginStreak: streak
             }).then(() => {
+                LobbyAudio.playTake(); 
                 alert(msg);
                 renderRewards(); 
             });
         }
 
-        // ★ [修正] 渲染獎勵格子狀態
         function renderRewards() {
             const container = document.getElementById('daily-grid-container');
             if(!container || !currentUser) return;
@@ -987,7 +1010,6 @@
                     else stateClass = 'normal';
                 }
 
-                // 處理剛領完第7天重置的情況
                 if (streak === 0 && claimedToday) stateClass = 'normal'; 
 
                 let valText = (i === 7) ? '100,000' : '10,000';
@@ -1011,6 +1033,189 @@
             }
         }
 
+        // --- ★ 信箱相關新功能邏輯 ---
+
+        // 1. 初始化監聽信箱
+        function initMailboxListener() {
+            if(!myUserId) return;
+            const mailRef = db.ref('players/' + myUserId + '/mailbox');
+            
+            mailRef.on('value', (snapshot) => {
+                const mails = [];
+                snapshot.forEach(child => {
+                    mails.push({ id: child.key, ...child.val() });
+                });
+                
+                // 合併系統預設信件 (如果未被刪除)
+                const systemMails = getSystemMails();
+                const allMails = [...systemMails, ...mails];
+                
+                // 排序：新的在上面
+                allMails.sort((a, b) => b.date - a.date);
+                
+                renderMailList(allMails);
+            });
+        }
+
+        // 2. 獲取系統信件 (模擬)
+        function getSystemMails() {
+            const sysMails = [
+                { id: 'sys_001', title: '維護補償獎勵', content: '感謝您的耐心等待，補償 500 金幣', reward: 500, date: 1735538400000, type: 'system', isRead: false },
+                { id: 'sys_002', title: '火龍祕寶 - 新機上線!', content: '全新機台火熱上線，登入即送 1000 金幣', reward: 1000, date: 1735452000000, type: 'system', isRead: false }
+            ];
+            
+            // 過濾掉本地紀錄已刪除的
+            return sysMails.filter(m => !localStorage.getItem('deleted_' + m.id));
+        }
+
+        // 3. 渲染信件列表
+        function renderMailList(mails) {
+            const container = document.getElementById('mail-list-container');
+            container.innerHTML = '';
+
+            if (mails.length === 0) {
+                container.innerHTML = '<div style="text-align:center; color:#666; margin-top:20px;">暫無信件</div>';
+                updateMailTabCount(0);
+                return;
+            }
+
+            let unreadCount = 0;
+
+            mails.forEach(mail => {
+                // 檢查閱讀狀態 (Firebase 或 LocalStorage)
+                let isRead = mail.isRead;
+                if(mail.type === 'system') {
+                    isRead = localStorage.getItem('read_' + mail.id) === 'true';
+                }
+
+                if (!isRead) unreadCount++;
+
+                const div = document.createElement('div');
+                div.className = `mail-item ${isRead ? 'read' : 'unread'}`;
+                div.innerHTML = `
+                    <div class="mail-content-wrapper" onclick="openMail('${mail.id}', '${mail.type}', ${mail.reward || 0}, '${mail.title}', '${mail.content}')">
+                        <div class="mail-icon">${mail.type === 'system' ? (mail.reward ? '🎁' : '🔥') : '✉️'}</div>
+                        <div class="mail-info">
+                            <div class="mail-title">${mail.title}</div>
+                            <div class="mail-date">${new Date(mail.date).toLocaleDateString()}</div>
+                        </div>
+                        <div class="mail-status">${isRead ? '已讀' : '未讀'}</div>
+                    </div>
+                    <div class="mail-delete-btn" onclick="deleteMail('${mail.id}', '${mail.type}')">🗑️</div>
+                `;
+                container.appendChild(div);
+            });
+
+            updateMailTabCount(unreadCount);
+        }
+
+        // 4. 打開信件 (標記已讀 + 領獎)
+        window.openMail = function(id, type, reward, title, content) {
+            let msg = `${title}\n\n${content}`;
+            
+            // 標記已讀
+            if (type === 'system') {
+                if (localStorage.getItem('read_' + id) !== 'true') {
+                    localStorage.setItem('read_' + id, 'true');
+                    // 重新渲染以更新狀態
+                    const sysMails = getSystemMails(); 
+                    // 這裡簡化，直接觸發一次重繪
+                    db.ref('players/' + myUserId + '/mailbox').once('value', snapshot => {
+                         // Re-trigger render logic
+                         // For simplicity, just update UI class manually or reload
+                         initMailboxListener(); // Reload list
+                    });
+                    
+                    if (reward > 0) {
+                        updateUserBalance(reward);
+                        LobbyAudio.playTake();
+                        msg += `\n\n(已領取附件: ${reward} 金幣)`;
+                    }
+                }
+            } else {
+                // User mail
+                db.ref('players/' + myUserId + '/mailbox/' + id).update({ isRead: true });
+            }
+            
+            alert(msg);
+        };
+
+        // 5. 刪除信件
+        window.deleteMail = function(id, type) {
+            if(!confirm("確定要刪除這封信嗎？")) return;
+
+            if (type === 'system') {
+                localStorage.setItem('deleted_' + id, 'true');
+                initMailboxListener(); // Reload
+            } else {
+                db.ref('players/' + myUserId + '/mailbox/' + id).remove();
+            }
+        };
+
+        // 6. 更新標籤數字
+        function updateMailTabCount(count) {
+            const mailTabBtn = document.querySelectorAll('.r-tab-btn')[1]; 
+            if (mailTabBtn) {
+                mailTabBtn.innerText = count > 0 ? `信箱 (${count})` : "信箱";
+            }
+        }
+
+        // 7. 切換寫信介面
+        window.toggleComposeView = function(show) {
+            const listView = document.getElementById('view-mail');
+            const composeView = document.getElementById('view-compose');
+            
+            if(show) {
+                listView.classList.remove('active'); // 暫時隱藏列表，雖然都在 rewards-content 裡，但我們用 active class 控制 r-view
+                // 修正：上面的 switchRewardTab 切換的是 ID 為 view-mail 的 div
+                // 我們需要在 view-mail 內部做切換，或者把 view-compose 當作獨立 view
+                
+                // 簡單做法：隱藏 view-mail 的內容，顯示 view-compose
+                document.querySelector('#view-mail').classList.remove('active');
+                document.querySelector('#view-compose').classList.add('active');
+            } else {
+                document.querySelector('#view-compose').classList.remove('active');
+                document.querySelector('#view-mail').classList.add('active');
+            }
+        }
+
+        // 8. 發送玩家信件
+        window.sendUserMail = function() {
+            const toName = document.getElementById('compose-to').value.trim();
+            const content = document.getElementById('compose-msg').value.trim();
+            
+            if(!toName || !content) { alert("請填寫收件人和內容"); return; }
+            if(toName === currentUser.name) { alert("不能寄給自己"); return; }
+
+            // 找人
+            db.ref('players').orderByChild('name').equalTo(toName).once('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    let receiverId = null;
+                    snapshot.forEach(child => { receiverId = child.key; });
+                    
+                    if(receiverId) {
+                        const newMail = {
+                            title: `來自 ${currentUser.name} 的訊息`,
+                            content: content,
+                            date: Date.now(),
+                            isRead: false,
+                            type: 'user',
+                            sender: currentUser.name
+                        };
+                        
+                        db.ref('players/' + receiverId + '/mailbox').push(newMail).then(() => {
+                            alert("信件已發送！");
+                            toggleComposeView(false);
+                            document.getElementById('compose-to').value = '';
+                            document.getElementById('compose-msg').value = '';
+                        });
+                    }
+                } else {
+                    alert("找不到該玩家");
+                }
+            });
+        }
+
         function listenUserData() {
             if(!myUserId) return;
             db.ref('players/' + myUserId).on('value', (snapshot) => {
@@ -1019,10 +1224,11 @@
                     currentUser = data;
                     updateUserUI();
                 } else {
-                    // 資料被刪除 (例如訪客斷線被刪)
                     location.reload();
                 }
             });
+            // ★ 啟動信箱監聽
+            initMailboxListener();
         }
 
         function startTickerListener() {
@@ -1045,31 +1251,24 @@
             document.querySelector('.p-id').innerText = "ID: " + currentUser.name;
             document.querySelector('.w-balance').innerText = "當前餘額: " + currentUser.balance.toLocaleString('en-US', {minimumFractionDigits: 2});
             
-            // ★ [新增] 視覺區隔邏輯
             const avatarImg = document.querySelector('.avatar-img');
             const vipText = document.querySelector('.vip-text');
             const profileAvatar = document.querySelector('.p-avatar');
 
             if (currentUser.isGuest) {
-                // 訪客樣式
                 avatarImg.src = 'guest.png';
-                avatarImg.style.borderColor = '#999'; // 灰色外框
-                
+                avatarImg.style.borderColor = '#999'; 
                 vipText.innerText = "GUEST";
-                vipText.style.color = '#999'; // 灰色字體
-                
+                vipText.style.color = '#999'; 
                 if(profileAvatar) {
                     profileAvatar.src = 'guest.png';
                     profileAvatar.style.borderColor = '#999';
                 }
             } else {
-                // VIP 樣式
                 avatarImg.src = 'player.png';
-                avatarImg.style.borderColor = '#ffd700'; // 金色外框
-                
+                avatarImg.style.borderColor = '#ffd700'; 
                 vipText.innerText = "VIP." + currentUser.vip;
-                vipText.style.color = '#f4d06f'; // 金色字體
-                
+                vipText.style.color = '#f4d06f'; 
                 if(profileAvatar) {
                     profileAvatar.src = 'player.png';
                     profileAvatar.style.borderColor = '#ffd700';
@@ -1084,19 +1283,6 @@
                     authItem.innerHTML = '<span class="opt-icon">👋</span> 登出帳號';
                 }
             }
-
-            // ★ [新增] 檢查並隱藏已領取的信件
-            if (currentUser['claimed_mail-001']) {
-                const m1 = document.getElementById('mail-001');
-                if(m1) m1.style.display = 'none';
-            }
-            if (currentUser['claimed_mail-002']) {
-                const m2 = document.getElementById('mail-002');
-                if(m2) m2.style.display = 'none';
-            }
-
-            // ★ [新增] 更新信箱數字
-            updateMailTabCount();
         }
 
         function updateUserBalance(amount) {
@@ -1106,16 +1292,13 @@
             });
         }
 
-        // ★ [新增] 送禮邏輯 (扣自己錢 -> 給對方錢)
         window.sendGift = function() {
             if(currentUser.isGuest) { alert("訪客無法使用送禮功能"); return; }
 
-            // 1. 取得輸入資料
             const receiverInput = document.querySelector('#view-gift .gift-input[type="text"]');
-            const amountSelect = document.querySelector('#view-gift .gift-input:not([type="text"])'); // 下拉選單
+            const amountSelect = document.querySelector('#view-gift .gift-input:not([type="text"])'); 
             
             const receiverName = receiverInput.value.trim();
-            // 從下拉選單字串 "1,000 金幣" 中提取數字
             const amountStr = amountSelect.value.replace(/[^0-9]/g, '');
             const amount = parseInt(amountStr);
 
@@ -1123,31 +1306,27 @@
             if (currentUser.balance < amount) { alert("您的餘額不足！"); return; }
             if (receiverName === currentUser.name) { alert("不能送給自己啦！"); return; }
 
-            // 2. 先去資料庫找這個人是否存在
             db.ref('players').orderByChild('name').equalTo(receiverName).once('value', (snapshot) => {
                 if (snapshot.exists()) {
-                    // 找到對方了
                     let receiverId = null;
                     snapshot.forEach(child => { receiverId = child.key; });
 
                     if (receiverId) {
-                        // 3. 執行轉帳
-                        // A. 扣自己的錢
                         db.ref('players/' + myUserId + '/balance').transaction((currentBalance) => {
                             if (currentBalance >= amount) return currentBalance - amount;
-                            return currentBalance; // 如果交易瞬間錢不夠了，取消扣款
+                            return currentBalance; 
                         }, (error, committed, snapshot) => {
                             if (error) {
                                 alert("交易失敗");
                             } else if (!committed) {
                                 alert("餘額不足，交易取消");
                             } else {
-                                // B. 扣款成功後，加對方的錢
                                 db.ref('players/' + receiverId + '/balance').transaction((balance) => {
                                     return (balance || 0) + amount;
                                 });
+                                LobbyAudio.playMoney(); 
                                 alert(`成功發送 ${amount.toLocaleString()} 金幣給 ${receiverName}！`);
-                                receiverInput.value = ''; // 清空輸入框
+                                receiverInput.value = ''; 
                             }
                         });
                     }
@@ -1175,7 +1354,6 @@
                     });
                 } else {
                     localStorage.removeItem('casino_firebase_uid');
-                    // 轉為訪客
                     const guestId = 'guest_' + Date.now();
                     const guestUser = { name: "Guest", balance: 10000, vip: 0, isGuest: true };
                     db.ref('players/' + guestId).set(guestUser).then(() => {
@@ -1199,7 +1377,7 @@
             if (type === 'support') alert("正在為您連線線上客服...");
             else if (type === 'history') alert("📊 投注紀錄功能開發中");
             else if (type === 'lang') alert("Language switched.");
-            else if (type === 'version') alert("Casino Lobby\nv1.3.2 Ultimate");
+            else if (type === 'version') alert("Casino Lobby\nv1.4.0 Ultimate");
         }
         document.addEventListener('click', (e) => {
             if (optionDropdown.classList.contains('active') && !optionDropdown.contains(e.target) && e.target !== optionBtn) {
@@ -1286,58 +1464,12 @@
             btns.forEach(b => b.classList.remove('active'));
             event.target.classList.add('active');
             document.querySelectorAll('.r-view').forEach(v => v.classList.remove('active'));
-            document.getElementById(`view-${tabName}`).classList.add('active');
-        }
-
-        // ★ [修改] 信箱讀取邏輯 (寫入資料庫並刪除元素)
-        window.readMail = function(element, mailId, reward) {
-            if(currentUser.isGuest) { alert("訪客無法使用信箱"); return; }
-            
-            // 檢查資料庫是否已標記為領取 (防止重複點擊)
-            if (currentUser['claimed_' + mailId]) {
-                element.remove();
-                updateMailTabCount(); // Ensure count updates if element is removed here
-                return;
-            }
-
-            // 更新資料庫
-            const updates = {};
-            updates['balance'] = (currentUser.balance || 0) + reward;
-            updates['claimed_' + mailId] = true; // 標記為已領取
-
-            db.ref('players/' + myUserId).update(updates).then(() => {
-                alert(`📩 領取附件：${reward} 金幣`);
-                // 從畫面上移除該信件
-                element.style.transition = 'opacity 0.3s';
-                element.style.opacity = '0';
-                setTimeout(() => {
-                    element.remove();
-                    updateMailTabCount(); // Update count after removal
-                }, 300);
-            });
-        }
-
-        // ★ [新增] 自動計算並更新信箱標籤上的數字
-        function updateMailTabCount() {
-            // 找出所有還在列表中的信件
-            const allMails = document.querySelectorAll('.mail-list .mail-item');
-            let count = 0;
-            
-            // 計算沒有被隱藏 (display: none) 的信件
-            allMails.forEach(mail => {
-                if (mail.style.display !== 'none' && mail.parentNode) {
-                    count++;
-                }
-            });
-
-            // 更新按鈕文字 (第二個按鈕是信箱)
-            const mailTabBtn = document.querySelectorAll('.r-tab-btn')[1]; 
-            if (mailTabBtn) {
-                if (count > 0) {
-                    mailTabBtn.innerText = `信箱 (${count})`;
-                } else {
-                    mailTabBtn.innerText = "信箱"; // 沒信時就不顯示數字
-                }
+            if(tabName === 'mail') {
+                // 重置回列表
+                document.getElementById('view-compose').classList.remove('active');
+                document.getElementById('view-mail').classList.add('active');
+            } else {
+                document.getElementById(`view-${tabName}`).classList.add('active');
             }
         }
 
@@ -1364,7 +1496,6 @@
                 const dragonCard = document.getElementById('game-dragon');
                 overlay.classList.add('active'); 
                 
-                // ★ 訪客離開遊戲後自動刪除
                 if(currentUser && currentUser.isGuest) {
                     db.ref('players/' + myUserId).remove().then(() => {
                         sessionStorage.removeItem('casino_guest_id');
