@@ -698,7 +698,6 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
     <script>
-        // --- 1. Firebase Configuration & Initialization ---
         const firebaseConfig = {
             apiKey: "AIzaSyA13JH6n_YRY2Rtiuq2u3iN4mEe5cQL8Bo",
             authDomain: "casino-lobby-123f5.firebaseapp.com",
@@ -713,20 +712,20 @@
         }
         const db = firebase.database();
 
-        // --- 2. User Logic with Firebase (全新帳號密碼版) ---
         let currentUser = null;
         let myUserId = localStorage.getItem('casino_firebase_uid');
         let guestSessionId = sessionStorage.getItem('casino_guest_id');
+        let currentMailsCache = []; // Cache to store mails for re-rendering
 
         // ★ Audio Controller
         const LobbyAudio = {
             bgm: document.getElementById('bgm_lobby'),
             sfxClick: document.getElementById('sfx_click'),
-            sfxTake: document.getElementById('sfx_take'),   // New
-            sfxMoney: document.getElementById('sfx_money'), // New
+            sfxTake: document.getElementById('sfx_take'),
+            sfxMoney: document.getElementById('sfx_money'),
             isMuted: false,
             hasInteracted: false, 
-            isFading: false, // Flag for manual fade
+            isFading: false, 
 
             init: function() {
                 const savedMute = localStorage.getItem('lobby_mute');
@@ -754,9 +753,9 @@
                     });
                 }
 
-                // Auto Fade Out at end of track
+                // Auto Fade Out
                 this.bgm.addEventListener('timeupdate', () => {
-                    if(this.isFading) return; // Skip if manual fading
+                    if(this.isFading) return; 
                     if(!this.bgm.duration) return;
                     const timeLeft = this.bgm.duration - this.bgm.currentTime;
                     
@@ -768,7 +767,6 @@
                 });
             },
 
-            // Manual Fade Out (Entering Game)
             fadeOut: function() {
                 if(!this.bgm) return;
                 this.isFading = true;
@@ -785,7 +783,6 @@
                 }, 50); 
             },
 
-            // Manual Fade In (Returning to Lobby)
             playBGM: function() {
                 if (!this.isMuted && this.bgm) {
                     this.isFading = true;
@@ -837,7 +834,6 @@
             }
         };
 
-        // ★ 修改：綁定所有按鈕的點擊音效 (改為 pointerdown 加速反應)
         document.addEventListener('pointerdown', (e) => {
             if (e.target.closest('.clickable-btn, .nav-item, .w-btn, .close-gold-btn, .game-card, .r-tab-btn, .w-option, .opt-item, .mail-item, .send-btn, .compose-btn, .mail-delete-btn')) {
                 LobbyAudio.playClick();
@@ -846,10 +842,8 @@
 
         LobbyAudio.init();
 
-
         function initUser() {
             const authModal = document.getElementById('auth-modal');
-            
             if (myUserId) {
                 db.ref('players/' + myUserId).once('value', (snapshot) => {
                     const data = snapshot.val();
@@ -920,7 +914,6 @@
             });
         }
 
-        // ★ [修正] 訪客登入 (加入自動刪除機制)
         window.doGuestLogin = function() {
             const guestId = 'guest_' + Date.now();
             const guestUser = {
@@ -935,10 +928,7 @@
                     sessionStorage.setItem('casino_guest_id', guestId);
                     myUserId = guestId;
                     currentUser = guestUser;
-                    
-                    // ★ 設定斷線自動刪除
                     db.ref('players/' + guestId).onDisconnect().remove();
-
                     document.getElementById('auth-modal').classList.remove('active');
                     updateUserUI();
                     startTickerListener();
@@ -993,7 +983,7 @@
                 return;
             }
             if(element.classList.contains('claimed')) return; 
-            if(element.classList.contains('normal')) return; // 鎖定狀態不可點
+            if(element.classList.contains('normal')) return;
 
             const today = new Date().setHours(0,0,0,0);
             const lastDate = currentUser.lastLoginDate || 0;
@@ -1090,12 +1080,11 @@
                     mails.push({ id: child.key, ...child.val() });
                 });
                 
-                // 合併系統預設信件 (如果未被刪除)
                 const systemMails = getSystemMails();
                 const allMails = [...systemMails, ...mails];
                 
-                // 排序：新的在上面
                 allMails.sort((a, b) => b.date - a.date);
+                currentMailsCache = allMails; // Update cache
                 
                 renderMailList(allMails);
             });
@@ -1103,13 +1092,15 @@
 
         // 2. 獲取系統信件 (模擬)
         function getSystemMails() {
+            // ★ 修改：從 currentUser.deleted_sys_mails 檢查刪除狀態
+            const deletedMap = currentUser ? (currentUser.deleted_sys_mails || {}) : {};
+            
             const sysMails = [
                 { id: 'sys_001', title: '維護補償獎勵', content: '感謝您的耐心等待，補償 500 金幣', reward: 500, date: 1735538400000, type: 'system', isRead: false },
                 { id: 'sys_002', title: '火龍祕寶 - 新機上線!', content: '全新機台火熱上線，登入即送 1000 金幣', reward: 1000, date: 1735452000000, type: 'system', isRead: false }
             ];
             
-            // 過濾掉本地紀錄已刪除的
-            return sysMails.filter(m => !localStorage.getItem('deleted_' + m.id));
+            return sysMails.filter(m => !deletedMap[m.id]);
         }
 
         // 3. 渲染信件列表
@@ -1126,10 +1117,13 @@
             let unreadCount = 0;
 
             mails.forEach(mail => {
-                // 檢查閱讀狀態 (Firebase 或 LocalStorage)
                 let isRead = mail.isRead;
+                
+                // ★ 修改：優先檢查 Firebase 的 claimed_sys_mails
                 if(mail.type === 'system') {
-                    isRead = localStorage.getItem('read_' + mail.id) === 'true';
+                    if (currentUser && currentUser.claimed_sys_mails && currentUser.claimed_sys_mails[mail.id]) {
+                        isRead = true;
+                    }
                 }
 
                 if (!isRead) unreadCount++;
@@ -1157,25 +1151,33 @@
         window.openMail = function(id, type, reward, title, content) {
             let msg = `${title}\n\n${content}`;
             
-            // 標記已讀
             if (type === 'system') {
-                if (localStorage.getItem('read_' + id) !== 'true') {
-                    localStorage.setItem('read_' + id, 'true');
-                    // 重新渲染以更新狀態
-                    initMailboxListener(); 
-                    
-                    if (reward > 0) {
-                        updateUserBalance(reward);
-                        LobbyAudio.playTake();
-                        msg += `\n\n(已領取附件: ${reward} 金幣)`;
-                    }
+                // ★ 修改：檢查 Firebase 狀態
+                const isClaimed = currentUser.claimed_sys_mails && currentUser.claimed_sys_mails[id];
+
+                if (!isClaimed) {
+                    const updates = {};
+                    updates['balance'] = (currentUser.balance || 0) + reward;
+                    updates['claimed_sys_mails/' + id] = true;
+
+                    db.ref('players/' + myUserId).update(updates).then(() => {
+                        if (reward > 0) {
+                            LobbyAudio.playTake();
+                            alert(msg + `\n\n(已領取附件: ${reward} 金幣)`);
+                        } else {
+                            alert(msg);
+                        }
+                        // 資料更新後，listenUserData 會觸發 updateUserUI，我們在那裡重繪列表
+                    });
+                } else {
+                    alert(msg + "\n\n(已讀/已領取)");
                 }
             } else {
-                // User mail
-                db.ref('players/' + myUserId + '/mailbox/' + id).update({ isRead: true });
+                if(!currentUser.mailbox[id].isRead) {
+                    db.ref('players/' + myUserId + '/mailbox/' + id).update({ isRead: true });
+                }
+                alert(msg);
             }
-            
-            alert(msg);
         };
 
         // 5. 刪除信件
@@ -1183,8 +1185,8 @@
             if(!confirm("確定要刪除這封信嗎？")) return;
 
             if (type === 'system') {
-                localStorage.setItem('deleted_' + id, 'true');
-                initMailboxListener(); // Reload
+                // ★ 修改：寫入 Firebase deleted_sys_mails
+                db.ref('players/' + myUserId + '/deleted_sys_mails/' + id).set(true);
             } else {
                 db.ref('players/' + myUserId + '/mailbox/' + id).remove();
             }
@@ -1217,7 +1219,6 @@
             if(!toName || !content) { alert("請填寫收件人和內容"); return; }
             if(toName === currentUser.name) { alert("不能寄給自己"); return; }
 
-            // 找人
             db.ref('players').orderByChild('name').equalTo(toName).once('value', (snapshot) => {
                 if (snapshot.exists()) {
                     let receiverId = null;
@@ -1253,11 +1254,39 @@
                 if(data) {
                     currentUser = data;
                     updateUserUI();
+                    
+                    // ★ 每次 user data 更新 (例如領取/刪除系統信)，重繪信箱列表
+                    // 這裡使用緩存的信件列表重新渲染，確保狀態即時更新
+                    if(currentMailsCache.length > 0) {
+                         // 重新過濾系統信件 (因為可能剛刪除)
+                         const sysMails = getSystemMails();
+                         // 用戶信件通常不變，除非 mailbox 節點變動 (由 initMailboxListener 處理)
+                         // 為了簡單，我們重新觸發一次 mailbox listener 的邏輯
+                         // 或是簡單地呼叫 initMailboxListener? 不行，會重複綁定。
+                         // 最簡單：直接從 DB 重新拉一次 mailbox 資料，確保一致性
+                         // 但為了效能，我們這裡依賴 initMailboxListener 的 'value' 事件，它會自動處理。
+                         // 因為我們修改的是 players/ID/claimed...，這會觸發 listenUserData，
+                         // 但不會觸發 mailbox listener。
+                         // 所以我們需要在這裡手動重繪一下列表。
+                         
+                         // 重新計算 system mails 狀態
+                         // 為了簡化，直接清空 cache 讓下次 init 處理? 不行。
+                         // 我們手動呼叫一次渲染邏輯：
+                         const mailRef = db.ref('players/' + myUserId + '/mailbox');
+                         mailRef.once('value', (snap) => {
+                            const mails = [];
+                            snap.forEach(child => { mails.push({ id: child.key, ...child.val() }); });
+                            const systemMails = getSystemMails();
+                            const allMails = [...systemMails, ...mails];
+                            allMails.sort((a, b) => b.date - a.date);
+                            renderMailList(allMails);
+                         });
+                    }
+
                 } else {
                     location.reload();
                 }
             });
-            // ★ 啟動信箱監聽
             initMailboxListener();
         }
 
@@ -1407,7 +1436,7 @@
             if (type === 'support') alert("正在為您連線線上客服...");
             else if (type === 'history') alert("📊 投注紀錄功能開發中");
             else if (type === 'lang') alert("Language switched.");
-            else if (type === 'version') alert("Casino Lobby\nv1.4.1 Ultimate");
+            else if (type === 'version') alert("Casino Lobby\nv1.4.3 Ultimate");
         }
         document.addEventListener('click', (e) => {
             if (optionDropdown.classList.contains('active') && !optionDropdown.contains(e.target) && e.target !== optionBtn) {
