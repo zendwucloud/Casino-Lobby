@@ -19,14 +19,20 @@
             font-family: 'Segoe UI', sans-serif;
             display: flex; justify-content: center; align-items: center;
             background: radial-gradient(circle at center, #333333 0%, #000000 85%);
+            background-image: url('bg.jpg'); 
+            background-size: cover;       
+            background-position: center;  
+            background-repeat: no-repeat; 
         }
 
         .app-container {
             height: 100%; aspect-ratio: 9/16; max-width: 100vw; 
             position: relative; display: flex; flex-direction: column;
-            background-color: #121212; background-image: url('bg.png');
+            background-color: #121212; 
+            background-image: url('bg.png'); 
             background-size: 100% 100%; background-repeat: no-repeat;
-            box-shadow: 0 0 50px rgba(0,0,0,0.8); z-index: 1; overflow: hidden;
+            box-shadow: 0 0 80px rgba(0,0,0,0.9); 
+            z-index: 1; overflow: hidden;
         }
 
         #lobby-bg-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; mix-blend-mode: screen; }
@@ -50,19 +56,30 @@
         .top-bar.gradient-border-box::after { top: -4px; height: calc(100% + 2px); }
 
         .user-section { display: flex; align-items: center; gap: 6px; width: auto; flex-shrink: 0; margin-right: 5px; }
-        .avatar-img { height: 5.5vh; width: 5.5vh; border-radius: 50%; object-fit: cover; border: 2px solid #333; }
-        .vip-text { color: var(--text-gold); font-weight: 800; font-size: 1.8vh; letter-spacing: 0.5px; }
+        .avatar-img { height: 5.5vh; width: 5.5vh; border-radius: 50%; object-fit: cover; border: 2px solid #333; transition: border-color 0.3s; }
+        .vip-text { color: var(--text-gold); font-weight: 800; font-size: 1.8vh; letter-spacing: 0.5px; transition: color 0.3s; }
         
+        /* ★ [修改] 玻璃凹槽質感 Coin Bar */
         .coin-bar { 
             flex: 1; height: 55%; 
             display: flex; align-items: center; justify-content: space-between; 
-            background: rgba(0, 0, 0, 0.2); 
-            border: 2px solid rgba(255, 215, 0, 0.3); 
+            
+            /* 玻璃質感與凹槽設定 */
+            background: rgba(0, 0, 0, 0.4); /* 深色半透明底 */
+            border: 1px solid rgba(255, 255, 255, 0.3); /* 1px 亮灰色邊框 */
             border-radius: 50px; 
+            
+            /* 內陰影創造凹陷感 + 外光暈 */
+            box-shadow: 
+                inset 0 3px 8px rgba(0, 0, 0, 0.8),  /* 上方內陰影，製造深度 */
+                0 0 10px rgba(255, 255, 255, 0.15);  /* 外部淡淡的白色光暈 */
+            
+            backdrop-filter: blur(5px);
             padding: 0 8px 0 6px; 
             min-width: 0; 
         }
-        .gold-icon { height: 63%; width: auto; flex-shrink: 0; }
+
+        .gold-icon { height: 63%; width: auto; flex-shrink: 0; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5)); }
         
         .center-group { 
             flex: 1; display: flex; align-items: center; 
@@ -72,16 +89,17 @@
         
         .coin-number { 
             color: var(--text-white); 
-            font-weight: 650; 
+            font-weight: 700; /* 稍微加粗一點 */
             font-size: 3.5vh; 
             margin-right: 8px; margin-top: -4px; 
-            letter-spacing: -0.5px; white-space: nowrap; 
+            letter-spacing: 0.5px; white-space: nowrap; 
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8); /* 文字加深陰影，增加立體感 */
             overflow: hidden; text-overflow: ellipsis; line-height: 1.1; 
         }
         
         .coins-text-img { 
             height: 1.8vh; 
-            width: auto; margin-top: 3px; opacity: 1.0; flex-shrink: 0; 
+            width: auto; margin-top: 3px; opacity: 0.8; flex-shrink: 0; 
         } 
         
         .clickable-btn { transition: transform 0.1s ease; }
@@ -253,7 +271,7 @@
 
         /* --- Profile Styles --- */
         .profile-header { padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 10px; background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 100%); border-radius: 20px 20px 0 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .p-avatar { width: 80px; height: 80px; border-radius: 50%; border: 3px solid #ffd700; box-shadow: 0 0 15px rgba(255, 215, 0, 0.3); }
+        .p-avatar { width: 80px; height: 80px; border-radius: 50%; border: 3px solid #ffd700; box-shadow: 0 0 15px rgba(255, 215, 0, 0.3); transition: border-color 0.3s; }
         .p-info { text-align: center; }
         .p-name { color: #fff; font-size: 2.2vh; font-weight: 800; }
         .p-id { color: #888; font-size: 1.4vh; margin-top: 2px; }
@@ -268,6 +286,14 @@
         .settings-list { padding: 0 20px; display: flex; flex-direction: column; gap: 10px; }
         .setting-item { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); padding: 12px 15px; border-radius: 10px; }
         .setting-label { color: #fff; font-size: 1.6vh; }
+        /* 調整按鈕為切換形式 */
+        .toggle-switch-small { position: relative; display: inline-block; width: 40px; height: 20px; }
+        .toggle-switch-small input { opacity: 0; width: 0; height: 0; }
+        .slider-small { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+        .slider-small:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider-small { background-color: #ffd700; }
+        input:checked + .slider-small:before { transform: translateX(20px); }
+
         .logout-btn { margin: 20px; padding: 12px; border-radius: 10px; background: rgba(255, 69, 0, 0.2); border: 1px solid rgba(255, 69, 0, 0.5); color: #ff4500; font-weight: bold; text-align: center; cursor: pointer; transition: all 0.2s; }
         .logout-btn:active { background: rgba(255, 69, 0, 0.4); transform: scale(0.98); }
 
@@ -366,6 +392,9 @@
 </head>
 <body>
 
+    <audio id="bgm_lobby" src="bgm_lobby.mp3" loop preload="auto"></audio>
+    <audio id="sfx_click" src="sfx_click.mp3" preload="auto"></audio>
+
     <div class="app-container">
         
         <canvas id="lobby-bg-canvas"></canvas>
@@ -400,7 +429,7 @@
                     <span class="opt-icon">👋</span> 登出帳號
                 </div>
                 <div class="opt-item" onclick="optAction('version')">
-                    <span class="opt-icon">ℹ️</span> 版本: v1.3.1
+                    <span class="opt-icon">ℹ️</span> 版本: v1.3.3
                 </div>
             </div>
 
@@ -463,7 +492,7 @@
 
                 <div id="view-mail" class="r-view">
                     <div class="mail-list">
-                        <div class="mail-item unread" onclick="readMail(this)">
+                        <div class="mail-item unread" id="mail-001" onclick="readMail(this, 'mail-001', 500)">
                             <div class="mail-icon">🎁</div>
                             <div class="mail-info">
                                 <div class="mail-title">維護補償獎勵</div>
@@ -471,7 +500,7 @@
                             </div>
                             <div class="mail-status">未讀</div>
                         </div>
-                        <div class="mail-item unread" onclick="readMail(this)">
+                        <div class="mail-item unread" id="mail-002" onclick="readMail(this, 'mail-002', 1000)">
                             <div class="mail-icon">🔥</div>
                             <div class="mail-info">
                                 <div class="mail-title">火龍祕寶 - 新機上線!</div>
@@ -498,7 +527,7 @@
                                 <option>10,000 金幣</option>
                             </select>
                         </div>
-                        <button class="send-btn" onclick="alert('發送成功！')">確認發送</button>
+                        <button class="send-btn" onclick="sendGift()">確認發送</button>
                     </div>
                 </div>
             </div>
@@ -522,8 +551,20 @@
                     <div class="stat-box"><div class="stat-label">最高倍率</div><div class="stat-val" style="color: #ffd700;">x5000</div></div>
                 </div>
                 <div class="settings-list">
-                    <div class="setting-item"><span class="setting-label">背景音樂</span><div style="color: #00ff00; font-weight:bold;">ON</div></div>
-                    <div class="setting-item"><span class="setting-label">遊戲音效</span><div style="color: #00ff00; font-weight:bold;">ON</div></div>
+                    <div class="setting-item">
+                        <span class="setting-label">背景音樂</span>
+                        <label class="toggle-switch-small">
+                            <input type="checkbox" id="bgm-toggle" checked>
+                            <span class="slider-small"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <span class="setting-label">遊戲音效</span>
+                        <label class="toggle-switch-small">
+                            <input type="checkbox" checked onclick="alert('音效設定暫時無法連動至遊戲內')">
+                            <span class="slider-small"></span>
+                        </label>
+                    </div>
                     <div class="setting-item"><span class="setting-label">推播通知</span><div style="color: #666;">OFF</div></div>
                 </div>
                 <div class="logout-btn" onclick="logout()">登出帳號</div>
@@ -623,7 +664,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
     <script>
-        // --- 1. Firebase Configuration ---
+        // --- 1. Firebase Configuration & Initialization ---
         const firebaseConfig = {
             apiKey: "AIzaSyA13JH6n_YRY2Rtiuq2u3iN4mEe5cQL8Bo",
             authDomain: "casino-lobby-123f5.firebaseapp.com",
@@ -638,10 +679,97 @@
         }
         const db = firebase.database();
 
-        // --- 2. User Logic ---
+        // --- 2. User Logic with Firebase (全新帳號密碼版) ---
         let currentUser = null;
         let myUserId = localStorage.getItem('casino_firebase_uid');
         let guestSessionId = sessionStorage.getItem('casino_guest_id');
+
+        // ★ Audio Controller
+        const LobbyAudio = {
+            bgm: document.getElementById('bgm_lobby'),
+            sfxClick: document.getElementById('sfx_click'),
+            isMuted: false,
+            hasInteracted: false, // 瀏覽器政策：需要互動後才能播音
+
+            init: function() {
+                // 嘗試從本地讀取設定
+                const savedMute = localStorage.getItem('lobby_mute');
+                if (savedMute === 'true') {
+                    this.isMuted = true;
+                    document.getElementById('bgm-toggle').checked = false;
+                }
+                
+                // 設置初始音量
+                if(this.bgm) this.bgm.volume = 0.5;
+                if(this.sfxClick) this.sfxClick.volume = 1.0;
+
+                // 綁定全域點擊事件來啟動音樂 (只執行一次)
+                document.body.addEventListener('click', () => {
+                    if (!this.hasInteracted) {
+                        this.hasInteracted = true;
+                        this.playBGM();
+                    }
+                }, { once: true });
+                
+                // 綁定 Toggle 開關
+                const toggle = document.getElementById('bgm-toggle');
+                if(toggle) {
+                    toggle.addEventListener('change', (e) => {
+                        this.toggleMute(!e.target.checked);
+                    });
+                }
+
+                // ★ [新增] 自動淡出效果 (Fade Out)
+                this.bgm.addEventListener('timeupdate', () => {
+                    if(!this.bgm.duration) return;
+                    const timeLeft = this.bgm.duration - this.bgm.currentTime;
+                    
+                    // 最後 5 秒開始變小聲
+                    if(timeLeft <= 5) {
+                        // 音量從 0.5 慢慢降到 0
+                        this.bgm.volume = Math.max(0, timeLeft / 5 * 0.5); 
+                    } else if (this.bgm.volume < 0.5 && !this.isMuted) {
+                        // 確保其他時間音量是正常的 0.5
+                        this.bgm.volume = 0.5;
+                    }
+                });
+            },
+
+            playBGM: function() {
+                if (!this.isMuted && this.bgm) {
+                    this.bgm.play().catch(e => console.log("等待互動播放..."));
+                }
+            },
+
+            playClick: function() {
+                if (!this.isMuted && this.sfxClick) {
+                    this.sfxClick.currentTime = 0;
+                    this.sfxClick.play().catch(()=>{});
+                }
+            },
+
+            toggleMute: function(muteState) {
+                this.isMuted = muteState;
+                localStorage.setItem('lobby_mute', muteState);
+                if (muteState) {
+                    if(this.bgm) this.bgm.pause();
+                } else {
+                    if(this.bgm && this.hasInteracted) this.bgm.play();
+                }
+            }
+        };
+
+        // ★ 修改：綁定所有按鈕的點擊音效 (改為 pointerdown 加速反應)
+        document.addEventListener('pointerdown', (e) => {
+            // 只要是按鈕或可點擊元素
+            if (e.target.closest('.clickable-btn, .nav-item, .w-btn, .close-gold-btn, .game-card, .r-tab-btn, .w-option, .opt-item, .mail-item')) {
+                LobbyAudio.playClick();
+            }
+        });
+
+        // 啟動 Audio
+        LobbyAudio.init();
+
 
         function initUser() {
             const authModal = document.getElementById('auth-modal');
@@ -913,11 +1041,41 @@
         function updateUserUI() {
             if(!currentUser) return;
             document.querySelector('.coin-number').innerText = currentUser.balance.toLocaleString('en-US', {minimumFractionDigits: 2});
-            document.querySelector('.vip-text').innerText = currentUser.isGuest ? "GUEST" : "VIP." + currentUser.vip;
             document.querySelector('.p-name').innerText = currentUser.name;
             document.querySelector('.p-id').innerText = "ID: " + currentUser.name;
             document.querySelector('.w-balance').innerText = "當前餘額: " + currentUser.balance.toLocaleString('en-US', {minimumFractionDigits: 2});
             
+            // ★ [新增] 視覺區隔邏輯
+            const avatarImg = document.querySelector('.avatar-img');
+            const vipText = document.querySelector('.vip-text');
+            const profileAvatar = document.querySelector('.p-avatar');
+
+            if (currentUser.isGuest) {
+                // 訪客樣式
+                avatarImg.src = 'guest.png';
+                avatarImg.style.borderColor = '#999'; // 灰色外框
+                
+                vipText.innerText = "GUEST";
+                vipText.style.color = '#999'; // 灰色字體
+                
+                if(profileAvatar) {
+                    profileAvatar.src = 'guest.png';
+                    profileAvatar.style.borderColor = '#999';
+                }
+            } else {
+                // VIP 樣式
+                avatarImg.src = 'player.png';
+                avatarImg.style.borderColor = '#ffd700'; // 金色外框
+                
+                vipText.innerText = "VIP." + currentUser.vip;
+                vipText.style.color = '#f4d06f'; // 金色字體
+                
+                if(profileAvatar) {
+                    profileAvatar.src = 'player.png';
+                    profileAvatar.style.borderColor = '#ffd700';
+                }
+            }
+
             const authItem = document.getElementById('opt-auth-item');
             if (authItem) {
                 if (currentUser.isGuest) {
@@ -926,12 +1084,76 @@
                     authItem.innerHTML = '<span class="opt-icon">👋</span> 登出帳號';
                 }
             }
+
+            // ★ [新增] 檢查並隱藏已領取的信件
+            if (currentUser['claimed_mail-001']) {
+                const m1 = document.getElementById('mail-001');
+                if(m1) m1.style.display = 'none';
+            }
+            if (currentUser['claimed_mail-002']) {
+                const m2 = document.getElementById('mail-002');
+                if(m2) m2.style.display = 'none';
+            }
+
+            // ★ [新增] 更新信箱數字
+            updateMailTabCount();
         }
 
         function updateUserBalance(amount) {
             if(currentUser.isGuest) return; 
             db.ref('players/' + myUserId + '/balance').transaction((currentBalance) => {
                 return (currentBalance || 0) + amount;
+            });
+        }
+
+        // ★ [新增] 送禮邏輯 (扣自己錢 -> 給對方錢)
+        window.sendGift = function() {
+            if(currentUser.isGuest) { alert("訪客無法使用送禮功能"); return; }
+
+            // 1. 取得輸入資料
+            const receiverInput = document.querySelector('#view-gift .gift-input[type="text"]');
+            const amountSelect = document.querySelector('#view-gift .gift-input:not([type="text"])'); // 下拉選單
+            
+            const receiverName = receiverInput.value.trim();
+            // 從下拉選單字串 "1,000 金幣" 中提取數字
+            const amountStr = amountSelect.value.replace(/[^0-9]/g, '');
+            const amount = parseInt(amountStr);
+
+            if (!receiverName) { alert("請輸入對方 ID 或暱稱"); return; }
+            if (currentUser.balance < amount) { alert("您的餘額不足！"); return; }
+            if (receiverName === currentUser.name) { alert("不能送給自己啦！"); return; }
+
+            // 2. 先去資料庫找這個人是否存在
+            db.ref('players').orderByChild('name').equalTo(receiverName).once('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    // 找到對方了
+                    let receiverId = null;
+                    snapshot.forEach(child => { receiverId = child.key; });
+
+                    if (receiverId) {
+                        // 3. 執行轉帳
+                        // A. 扣自己的錢
+                        db.ref('players/' + myUserId + '/balance').transaction((currentBalance) => {
+                            if (currentBalance >= amount) return currentBalance - amount;
+                            return currentBalance; // 如果交易瞬間錢不夠了，取消扣款
+                        }, (error, committed, snapshot) => {
+                            if (error) {
+                                alert("交易失敗");
+                            } else if (!committed) {
+                                alert("餘額不足，交易取消");
+                            } else {
+                                // B. 扣款成功後，加對方的錢
+                                db.ref('players/' + receiverId + '/balance').transaction((balance) => {
+                                    return (balance || 0) + amount;
+                                });
+                                alert(`成功發送 ${amount.toLocaleString()} 金幣給 ${receiverName}！`);
+                                receiverInput.value = ''; // 清空輸入框
+                            }
+                        });
+                    }
+                } else {
+                    alert("找不到這位玩家，請確認暱稱是否正確。");
+                }
             });
         }
 
@@ -977,7 +1199,7 @@
             if (type === 'support') alert("正在為您連線線上客服...");
             else if (type === 'history') alert("📊 投注紀錄功能開發中");
             else if (type === 'lang') alert("Language switched.");
-            else if (type === 'version') alert("Casino Lobby\nv1.3.1 Ultimate");
+            else if (type === 'version') alert("Casino Lobby\nv1.3.2 Ultimate");
         }
         document.addEventListener('click', (e) => {
             if (optionDropdown.classList.contains('active') && !optionDropdown.contains(e.target) && e.target !== optionBtn) {
@@ -1067,13 +1289,55 @@
             document.getElementById(`view-${tabName}`).classList.add('active');
         }
 
-        window.readMail = function(element) {
+        // ★ [修改] 信箱讀取邏輯 (寫入資料庫並刪除元素)
+        window.readMail = function(element, mailId, reward) {
             if(currentUser.isGuest) { alert("訪客無法使用信箱"); return; }
-            if(element.classList.contains('unread')) {
-                element.classList.remove('unread');
-                element.querySelector('.mail-status').innerText = "已讀";
-                alert("📩 領取附件：500 金幣");
-                updateUserBalance(500);
+            
+            // 檢查資料庫是否已標記為領取 (防止重複點擊)
+            if (currentUser['claimed_' + mailId]) {
+                element.remove();
+                updateMailTabCount(); // Ensure count updates if element is removed here
+                return;
+            }
+
+            // 更新資料庫
+            const updates = {};
+            updates['balance'] = (currentUser.balance || 0) + reward;
+            updates['claimed_' + mailId] = true; // 標記為已領取
+
+            db.ref('players/' + myUserId).update(updates).then(() => {
+                alert(`📩 領取附件：${reward} 金幣`);
+                // 從畫面上移除該信件
+                element.style.transition = 'opacity 0.3s';
+                element.style.opacity = '0';
+                setTimeout(() => {
+                    element.remove();
+                    updateMailTabCount(); // Update count after removal
+                }, 300);
+            });
+        }
+
+        // ★ [新增] 自動計算並更新信箱標籤上的數字
+        function updateMailTabCount() {
+            // 找出所有還在列表中的信件
+            const allMails = document.querySelectorAll('.mail-list .mail-item');
+            let count = 0;
+            
+            // 計算沒有被隱藏 (display: none) 的信件
+            allMails.forEach(mail => {
+                if (mail.style.display !== 'none' && mail.parentNode) {
+                    count++;
+                }
+            });
+
+            // 更新按鈕文字 (第二個按鈕是信箱)
+            const mailTabBtn = document.querySelectorAll('.r-tab-btn')[1]; 
+            if (mailTabBtn) {
+                if (count > 0) {
+                    mailTabBtn.innerText = `信箱 (${count})`;
+                } else {
+                    mailTabBtn.innerText = "信箱"; // 沒信時就不顯示數字
+                }
             }
         }
 
