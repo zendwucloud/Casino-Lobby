@@ -471,7 +471,7 @@
                     <span class="opt-icon">👋</span> 登出帳號
                 </div>
                 <div class="opt-item" onclick="optAction('version')">
-                    <span class="opt-icon">ℹ️</span> 版本: v1.4.6
+                    <span class="opt-icon">ℹ️</span> 版本: v1.4.5
                 </div>
             </div>
 
@@ -652,8 +652,7 @@
             </div>
         </div>
 
-        <div id="auth-modal"> 
-            <div class="wallet-box" style="width: 40vh; max-width: 90%;">
+        <div id="auth-modal"> <div class="wallet-box" style="width: 40vh; max-width: 90%;">
                 <div class="w-header">
                     <div class="w-title" id="auth-title">登入 / 註冊</div>
                     <div class="w-balance" style="color:#aaa;">歡迎回到 Casino Lobby</div>
@@ -666,7 +665,7 @@
                     </div>
                     <div>
                         <span class="gift-label">密碼</span>
-                        <input type="password" id="auth-pass" class="gift-input" placeholder="密碼" style="background: rgba(0,0,0,0.5);">
+                        <input type="text" id="auth-pass" class="gift-input" placeholder="密碼" style="background: rgba(0,0,0,0.5);">
                     </div>
                 </div>
 
@@ -1547,7 +1546,7 @@
             if (type === 'support') alert("正在為您連線線上客服...");
             else if (type === 'history') alert("📊 投注紀錄功能開發中");
             else if (type === 'lang') alert("Language switched.");
-            else if (type === 'version') alert("Casino Lobby\nv1.4.6 Ultimate");
+            else if (type === 'version') alert("Casino Lobby\nv1.4.5 Ultimate");
         }
         document.addEventListener('click', (e) => {
             if (optionDropdown.classList.contains('active') && !optionDropdown.contains(e.target) && e.target !== optionBtn) {
@@ -1665,7 +1664,6 @@
                 const dragonCard = document.getElementById('game-dragon');
                 overlay.classList.add('active'); 
                 
-                // ★ 訪客離開遊戲後自動刪除
                 if(currentUser && currentUser.isGuest) {
                     db.ref('players/' + myUserId).remove().then(() => {
                         sessionStorage.removeItem('casino_guest_id');
