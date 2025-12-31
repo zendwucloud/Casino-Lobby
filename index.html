@@ -181,7 +181,10 @@
             display: flex; flex-direction: column; opacity: 0; pointer-events: none;
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             transform: translate(-50%, -50%) scale(0.8);
-            box-shadow: 0 20px 60px rgba(0,0,0,0.9), inset 0 0 30px rgba(255, 255, 255, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            box-shadow: 
+                0 20px 60px rgba(0,0,0,0.9), 
+                inset 0 0 30px rgba(255, 255, 255, 0.05),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
         .dashboard-panel.active { opacity: 1; pointer-events: all; transform: translate(-50%, -50%) scale(1); }
@@ -213,15 +216,23 @@
 
         /* Daily/Mail/Gift Styles */
         .daily-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; height: 100%; align-content: start; }
-        .day-box { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; aspect-ratio: 1/1.1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+        .day-box { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; aspect-ratio: 1/1.1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden; transition: all 0.3s; }
         .day-box.day-7 { grid-column: 1 / -1; aspect-ratio: 3/1; background: linear-gradient(45deg, rgba(255,215,0,0.1), rgba(255,0,0,0.1)); border: 1px solid rgba(255,215,0,0.3); }
         .day-num { font-size: 1.2vh; color: #888; margin-bottom: 5px; }
         .day-coin-img { width: 50%; height: auto; margin-bottom: 5px; filter: drop-shadow(0 0 5px rgba(255,215,0,0.5)); }
         .day-val { font-size: 1.6vh; color: #fff; font-weight: 800; }
+        
+        /* 狀態樣式：已領取 (灰) */
         .day-box.claimed { opacity: 0.5; filter: grayscale(1); }
         .day-box.claimed::after { content: "✔"; position: absolute; font-size: 3vh; color: #00ff00; text-shadow: 0 0 5px #000; font-weight: 900; }
-        .day-box.active { border-color: #ffd700; background: rgba(255, 215, 0, 0.1); cursor: pointer; animation: pulseBox 1.5s infinite; }
+        
+        /* 狀態樣式：可領取 (亮) */
+        .day-box.active { border-color: #ffd700; background: rgba(255, 215, 0, 0.1); cursor: pointer; animation: pulseBox 1.5s infinite; opacity: 1; filter: grayscale(0); }
         .day-box.active .day-val { color: #ffd700; text-shadow: 0 0 5px orange; }
+        
+        /* 狀態樣式：等待中 (暗) */
+        .day-box.normal { opacity: 0.4; filter: grayscale(0.8); pointer-events: none; }
+
         @keyframes pulseBox { 0% { transform: scale(1); } 50% { transform: scale(1.02); box-shadow: 0 0 15px rgba(255,215,0,0.3); } 100% { transform: scale(1); } }
         .mail-list { display: flex; flex-direction: column; gap: 8px; }
         .mail-item { background: rgba(255,255,255,0.05); border-radius: 10px; padding: 12px; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: background 0.2s; border-left: 3px solid transparent; }
@@ -389,7 +400,7 @@
                     <span class="opt-icon">👋</span> 登出帳號
                 </div>
                 <div class="opt-item" onclick="optAction('version')">
-                    <span class="opt-icon">ℹ️</span> 版本: v1.2.0
+                    <span class="opt-icon">ℹ️</span> 版本: v1.3.1
                 </div>
             </div>
 
@@ -446,27 +457,8 @@
             <div class="rewards-content">
                 
                 <div id="view-daily" class="r-view active">
-                    <div class="daily-grid">
-                        <div class="day-box claimed">
-                            <span class="day-num">Day 1</span>
-                            <img src="gold.png" class="day-coin-img">
-                            <span class="day-val">10,000</span>
+                    <div class="daily-grid" id="daily-grid-container">
                         </div>
-                        <div class="day-box active" onclick="claimDaily(this, 10000)">
-                            <span class="day-num">Day 2</span>
-                            <img src="gold.png" class="day-coin-img">
-                            <span class="day-val">10,000</span>
-                        </div>
-                        <div class="day-box"><span class="day-num">Day 3</span><img src="gold.png" class="day-coin-img" style="opacity:0.5"><span class="day-val" style="color:#666">10,000</span></div>
-                        <div class="day-box"><span class="day-num">Day 4</span><img src="gold.png" class="day-coin-img" style="opacity:0.5"><span class="day-val" style="color:#666">10,000</span></div>
-                        <div class="day-box"><span class="day-num">Day 5</span><img src="gold.png" class="day-coin-img" style="opacity:0.5"><span class="day-val" style="color:#666">10,000</span></div>
-                        <div class="day-box"><span class="day-num">Day 6</span><img src="gold.png" class="day-coin-img" style="opacity:0.5"><span class="day-val" style="color:#666">10,000</span></div>
-                        <div class="day-box day-7">
-                            <span class="day-num">Day 7 - MEGA BOX</span>
-                            <img src="events.png" class="day-coin-img" style="width: 15%; opacity:0.5">
-                            <span class="day-val" style="color:#666">100,000</span>
-                        </div>
-                    </div>
                 </div>
 
                 <div id="view-mail" class="r-view">
@@ -670,13 +662,17 @@
                     }
                 });
             } 
-            // 其次檢查是否為訪客 (頁面刷新保持狀態)
+            // 其次檢查是否為訪客
             else if (guestSessionId) {
                 db.ref('players/' + guestSessionId).once('value', (snapshot) => {
                     const data = snapshot.val();
                     if(data) {
                         myUserId = guestSessionId;
                         currentUser = data;
+                        
+                        // ★ [重要] 訪客斷線自動刪除機制 (重新綁定)
+                        db.ref('players/' + guestSessionId).onDisconnect().remove();
+
                         updateUserUI();
                         startTickerListener();
                         listenUserData();
@@ -692,12 +688,11 @@
             }
         }
 
-        // 延遲顯示登入框，讓背景先出來
         function showAuthModalWithDelay() {
             const authModal = document.getElementById('auth-modal');
             setTimeout(() => {
                 authModal.classList.add('active');
-            }, 800); // 0.8秒後浮現
+            }, 800); 
         }
 
         window.doLogin = function() {
@@ -714,7 +709,6 @@
                             foundUser = true;
                             myUserId = child.key;
                             localStorage.setItem('casino_firebase_uid', myUserId);
-                            // 清除訪客紀錄
                             sessionStorage.removeItem('casino_guest_id'); 
                             currentUser = userData;
                             document.getElementById('auth-modal').classList.remove('active');
@@ -731,7 +725,7 @@
             });
         }
 
-        // ★ 新增：訪客登入
+        // ★ [修正] 訪客登入 (加入自動刪除機制)
         window.doGuestLogin = function() {
             const guestId = 'guest_' + Date.now();
             const guestUser = {
@@ -741,23 +735,24 @@
                 isGuest: true
             };
             
-            // 寫入資料庫 (為了讓遊戲能讀取)
             db.ref('players/' + guestId).set(guestUser, (error) => {
                 if(!error) {
-                    // 只存 Session，關閉瀏覽器即失效 (邏輯上)
                     sessionStorage.setItem('casino_guest_id', guestId);
                     myUserId = guestId;
                     currentUser = guestUser;
+                    
+                    // ★ 設定斷線自動刪除
+                    db.ref('players/' + guestId).onDisconnect().remove();
+
                     document.getElementById('auth-modal').classList.remove('active');
                     updateUserUI();
                     startTickerListener();
                     listenUserData();
-                    alert("已進入訪客模式\n(注意：離開後資料將不保留)");
+                    alert("已進入訪客模式\n(注意：關閉分頁或重整將會清除資料)");
                 }
             });
         }
 
-        // ★ 修改：註冊 (10萬起始金)
         window.doRegister = function() {
             const name = document.getElementById('auth-name').value.trim();
             const pass = document.getElementById('auth-pass').value.trim();
@@ -772,10 +767,10 @@
                 const newUser = {
                     name: name,
                     password: pass,
-                    balance: 100000, // ★ 10萬
+                    balance: 100000, 
                     vip: 1,
                     joinedAt: Date.now(),
-                    lastLoginDate: 0, // 用於連續簽到
+                    lastLoginDate: 0, 
                     loginStreak: 0
                 };
 
@@ -797,51 +792,95 @@
             });
         }
 
-        // ★ 修改：每日簽到邏輯 (1萬/10萬 + 連續)
-        window.claimDaily = function(element, amount) { // amount 參數這裡其實沒用了，改由後端邏輯決定
+        window.claimDaily = function(element, amount) { 
             if(currentUser.isGuest) {
                 alert("訪客無法使用獎勵功能，請註冊正式帳號！");
                 return;
             }
-            if(element.classList.contains('claimed')) return;
+            if(element.classList.contains('claimed')) return; 
+            if(element.classList.contains('normal')) return; // 鎖定狀態不可點
 
             const today = new Date().setHours(0,0,0,0);
             const lastDate = currentUser.lastLoginDate || 0;
             let streak = currentUser.loginStreak || 0;
             
-            // 判斷是否已經領過
             if (lastDate === today) {
                 alert("今天已經領過囉！明天再來吧！");
                 return;
             }
 
-            // 判斷連續
             const oneDay = 86400000;
             if (today - lastDate > oneDay) {
-                streak = 1; // 中斷，重算
-            } else {
-                streak++; // 連續
+                streak = 0; 
             }
+
+            streak++; 
 
             let bonus = 10000;
             let msg = `🎉 簽到成功！獲得 ${bonus.toLocaleString()} 金幣！(第 ${streak} 天)`;
 
             if (streak >= 7) {
                 bonus = 100000;
-                streak = 0; // 第七天領完重置循環? 或是保持? 這裡設為領完大獎重置循環
+                streak = 0; 
                 msg = `🔥 連續簽到 7 天！獲得大獎 ${bonus.toLocaleString()} 金幣！`;
             }
 
-            // 更新資料庫
             db.ref('players/' + myUserId).update({
                 balance: (currentUser.balance || 0) + bonus,
                 lastLoginDate: today,
                 loginStreak: streak
+            }).then(() => {
+                alert(msg);
+                renderRewards(); 
             });
+        }
 
-            element.classList.remove('active'); 
-            element.classList.add('claimed');
-            alert(msg);
+        // ★ [修正] 渲染獎勵格子狀態
+        function renderRewards() {
+            const container = document.getElementById('daily-grid-container');
+            if(!container || !currentUser) return;
+            
+            container.innerHTML = ''; 
+
+            const streak = currentUser.loginStreak || 0;
+            const lastDate = currentUser.lastLoginDate || 0;
+            const today = new Date().setHours(0,0,0,0);
+            const claimedToday = (lastDate === today);
+
+            for(let i=1; i<=7; i++) {
+                let stateClass = 'normal'; 
+                
+                if (claimedToday) {
+                    if (i <= streak) stateClass = 'claimed';
+                    else stateClass = 'normal';
+                } else {
+                    if (i <= streak) stateClass = 'claimed';
+                    else if (i === streak + 1) stateClass = 'active';
+                    else stateClass = 'normal';
+                }
+
+                // 處理剛領完第7天重置的情況
+                if (streak === 0 && claimedToday) stateClass = 'normal'; 
+
+                let valText = (i === 7) ? '100,000' : '10,000';
+                let imgHtml = (i === 7) ? '<img src="events.png" class="day-coin-img" style="width: 15%; opacity:0.8">' : '<img src="gold.png" class="day-coin-img">';
+                let extraClass = (i === 7) ? 'day-7' : '';
+                let title = (i === 7) ? 'Day 7 - MEGA BOX' : `Day ${i}`;
+
+                let div = document.createElement('div');
+                div.className = `day-box ${extraClass} ${stateClass}`;
+                div.innerHTML = `
+                    <span class="day-num">${title}</span>
+                    ${imgHtml}
+                    <span class="day-val">${valText}</span>
+                `;
+                
+                if(stateClass === 'active') {
+                    div.onclick = function() { claimDaily(this, 0); };
+                }
+
+                container.appendChild(div);
+            }
         }
 
         function listenUserData() {
@@ -852,7 +891,7 @@
                     currentUser = data;
                     updateUserUI();
                 } else {
-                    // 資料被刪除 (例如訪客被清)
+                    // 資料被刪除 (例如訪客斷線被刪)
                     location.reload();
                 }
             });
@@ -879,7 +918,6 @@
             document.querySelector('.p-id').innerText = "ID: " + currentUser.name;
             document.querySelector('.w-balance').innerText = "當前餘額: " + currentUser.balance.toLocaleString('en-US', {minimumFractionDigits: 2});
             
-            // ★ 更新選單按鈕
             const authItem = document.getElementById('opt-auth-item');
             if (authItem) {
                 if (currentUser.isGuest) {
@@ -897,7 +935,6 @@
             });
         }
 
-        // ★ 新增：處理選單內的登入/登出
         function handleAuthAction() {
             if (currentUser && currentUser.isGuest) {
                 document.getElementById('auth-modal').classList.add('active');
@@ -906,28 +943,27 @@
             }
         }
 
-        // ★ 修改：登出 (現在是切換為訪客)
         function logout() {
-            if(confirm("確定要登出並切換為訪客身份嗎？")) {
-                localStorage.removeItem('casino_firebase_uid');
-                
-                // 直接建立一個臨時訪客並重整，讓體驗無縫接軌
-                const guestId = 'guest_' + Date.now();
-                const guestUser = {
-                    name: "Guest",
-                    balance: 10000,
-                    vip: 0,
-                    isGuest: true
-                };
-                
-                db.ref('players/' + guestId).set(guestUser).then(() => {
-                    sessionStorage.setItem('casino_guest_id', guestId);
-                    location.reload(); 
-                });
+            if(confirm("確定要登出嗎？")) {
+                if (currentUser && currentUser.isGuest) {
+                    db.ref('players/' + myUserId).remove().then(() => {
+                        localStorage.removeItem('casino_firebase_uid');
+                        sessionStorage.removeItem('casino_guest_id');
+                        location.reload();
+                    });
+                } else {
+                    localStorage.removeItem('casino_firebase_uid');
+                    // 轉為訪客
+                    const guestId = 'guest_' + Date.now();
+                    const guestUser = { name: "Guest", balance: 10000, vip: 0, isGuest: true };
+                    db.ref('players/' + guestId).set(guestUser).then(() => {
+                        sessionStorage.setItem('casino_guest_id', guestId);
+                        location.reload(); 
+                    });
+                }
             }
         }
 
-        // --- 3. UI Logic (Option, Panels) ---
         const optionBtn = document.querySelector('.menu-btn');
         const optionDropdown = document.getElementById('option-dropdown');
         if (optionBtn) {
@@ -941,7 +977,7 @@
             if (type === 'support') alert("正在為您連線線上客服...");
             else if (type === 'history') alert("📊 投注紀錄功能開發中");
             else if (type === 'lang') alert("Language switched.");
-            else if (type === 'version') alert("Casino Lobby\nv1.2.0 Ultimate");
+            else if (type === 'version') alert("Casino Lobby\nv1.3.1 Ultimate");
         }
         document.addEventListener('click', (e) => {
             if (optionDropdown.classList.contains('active') && !optionDropdown.contains(e.target) && e.target !== optionBtn) {
@@ -966,7 +1002,7 @@
                 navItems.forEach(i => i.classList.remove('active'));
                 item.classList.add('active');
                 if (item.id === 'nav-slots') openPanel(slotsPanel);
-                else if (item.id === 'nav-rewards') openPanel(rewardsPanel);
+                else if (item.id === 'nav-rewards') openPanel(rewardsPanel); 
                 else if (item.id === 'nav-profile') openPanel(profilePanel);
                 else if (item.id === 'nav-rankings') openRankingsPanel();
                 else closeAllPanels();
@@ -979,6 +1015,10 @@
                 if(p !== targetPanel) p.classList.remove('active');
             });
             setTimeout(() => { targetPanel.classList.add('active'); }, 200);
+            
+            if(targetPanel === rewardsPanel) {
+                renderRewards();
+            }
         }
 
         function closeAllPanels() {
@@ -1053,7 +1093,6 @@
             updateUserBalance(500000); 
         }
 
-        // --- 5. Game Integration ---
         window.addEventListener('message', (event) => {
             if (event.data === 'closeGame') {
                 const overlay = document.getElementById('transition-overlay');
@@ -1061,11 +1100,12 @@
                 const dragonCard = document.getElementById('game-dragon');
                 overlay.classList.add('active'); 
                 
-                // ★ 如果是訪客，離開遊戲後清除 Session (模擬刪除帳號)
+                // ★ 訪客離開遊戲後自動刪除
                 if(currentUser && currentUser.isGuest) {
-                    sessionStorage.removeItem('casino_guest_id');
-                    // 為了不讓畫面太突兀，我們重新載入頁面回到登入畫面
-                    setTimeout(() => location.reload(), 500);
+                    db.ref('players/' + myUserId).remove().then(() => {
+                        sessionStorage.removeItem('casino_guest_id');
+                        setTimeout(() => location.reload(), 500);
+                    });
                     return;
                 }
 
@@ -1082,7 +1122,6 @@
                 if(!currentUser.isGuest) {
                     db.ref('players/' + myUserId).update({ balance: event.data.value });
                 } else {
-                    // 訪客也要更新 DB 裡的餘額，不然遊戲畫面不會變，但不需要持久化
                     db.ref('players/' + myUserId).update({ balance: event.data.value });
                 }
             }
@@ -1127,7 +1166,6 @@
             }
         });
 
-        // --- 6. Visuals (Particles) ---
         (function initLobbyBackground() {
             const canvas = document.getElementById('lobby-bg-canvas');
             const container = document.querySelector('.app-container'); 
