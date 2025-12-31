@@ -59,6 +59,7 @@
         .avatar-img { height: 5.5vh; width: 5.5vh; border-radius: 50%; object-fit: cover; border: 2px solid #333; transition: border-color 0.3s; }
         .vip-text { color: var(--text-gold); font-weight: 800; font-size: 1.8vh; letter-spacing: 0.5px; transition: color 0.3s; }
         
+        /* 玻璃凹槽質感 Coin Bar */
         .coin-bar { 
             flex: 1; height: 55%; 
             display: flex; align-items: center; justify-content: space-between; 
@@ -219,7 +220,6 @@
         .rewards-tabs { height: 12%; display: flex; align-items: center; justify-content: center; gap: 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding: 0 10px; }
         .r-tab-btn { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: #aaa; padding: 6px 16px; border-radius: 20px; font-size: 1.5vh; font-weight: 700; cursor: pointer; transition: all 0.2s; }
         .r-tab-btn.active { background: linear-gradient(180deg, #ffeebb 0%, #aa8741 100%); border-color: #ffd700; color: #422100; box-shadow: 0 0 10px rgba(255, 215, 0, 0.3); }
-        /* ★ [修正] 類別名稱統一為 rewards-content 以配合 JS 邏輯，並設定 flex:1 確保 Footer 置底 */
         .rewards-content { flex: 1; padding: 15px; overflow-y: auto; position: relative; }
         .r-view { display: none; height: 100%; flex-direction: column; animation: fadeIn 0.3s; }
         .r-view.active { display: flex; }
@@ -241,13 +241,13 @@
 
         @keyframes pulseBox { 0% { transform: scale(1); } 50% { transform: scale(1.02); box-shadow: 0 0 15px rgba(255,215,0,0.3); } 100% { transform: scale(1); } }
         
-        /* ★ [修改] 信箱樣式優化 */
+        /* 信箱樣式優化 */
         .mail-list { display: flex; flex-direction: column; gap: 8px; }
         .mail-item { 
             background: rgba(255,255,255,0.05); border-radius: 10px; padding: 12px; 
             display: flex; align-items: center; gap: 10px; cursor: pointer; 
             transition: all 0.2s; border-left: 3px solid transparent; 
-            justify-content: space-between; /* 讓刪除按鈕靠右 */
+            justify-content: space-between; 
         }
         .mail-item:active { background: rgba(255,255,255,0.1); }
         
@@ -265,7 +265,7 @@
         }
         .mail-item.read .mail-title { color: #aaa; }
 
-        .mail-content-wrapper { display: flex; align-items: center; gap: 10px; flex: 1; } /* 包裹內容區，點擊讀取 */
+        .mail-content-wrapper { display: flex; align-items: center; gap: 10px; flex: 1; } 
         .mail-icon { font-size: 2.5vh; }
         .mail-info { flex: 1; }
         .mail-title { color: #fff; font-size: 1.6vh; font-weight: bold; margin-bottom: 2px; }
@@ -459,7 +459,7 @@
                     <span class="opt-icon">👋</span> 登出帳號
                 </div>
                 <div class="opt-item" onclick="optAction('version')">
-                    <span class="opt-icon">ℹ️</span> 版本: v1.4.0
+                    <span class="opt-icon">ℹ️</span> 版本: v1.4.2
                 </div>
             </div>
 
@@ -698,6 +698,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
     <script>
+        // --- 1. Firebase Configuration & Initialization ---
         const firebaseConfig = {
             apiKey: "AIzaSyA13JH6n_YRY2Rtiuq2u3iN4mEe5cQL8Bo",
             authDomain: "casino-lobby-123f5.firebaseapp.com",
@@ -712,6 +713,7 @@
         }
         const db = firebase.database();
 
+        // --- 2. User Logic with Firebase (全新帳號密碼版) ---
         let currentUser = null;
         let myUserId = localStorage.getItem('casino_firebase_uid');
         let guestSessionId = sessionStorage.getItem('casino_guest_id');
@@ -720,10 +722,11 @@
         const LobbyAudio = {
             bgm: document.getElementById('bgm_lobby'),
             sfxClick: document.getElementById('sfx_click'),
-            sfxTake: document.getElementById('sfx_take'),
-            sfxMoney: document.getElementById('sfx_money'),
+            sfxTake: document.getElementById('sfx_take'),   // New
+            sfxMoney: document.getElementById('sfx_money'), // New
             isMuted: false,
             hasInteracted: false, 
+            isFading: false, // Flag for manual fade
 
             init: function() {
                 const savedMute = localStorage.getItem('lobby_mute');
@@ -734,8 +737,8 @@
                 
                 if(this.bgm) this.bgm.volume = 0.5;
                 if(this.sfxClick) this.sfxClick.volume = 1.0;
-                if(this.sfxTake) this.sfxTake.volume = 1.0;
-                if(this.sfxMoney) this.sfxMoney.volume = 1.0;
+                if(this.sfxTake) this.sfxTake.volume = 1.0;   
+                if(this.sfxMoney) this.sfxMoney.volume = 1.0; 
 
                 document.body.addEventListener('click', () => {
                     if (!this.hasInteracted) {
@@ -751,9 +754,12 @@
                     });
                 }
 
+                // Auto Fade Out at end of track
                 this.bgm.addEventListener('timeupdate', () => {
+                    if(this.isFading) return; // Skip if manual fading
                     if(!this.bgm.duration) return;
                     const timeLeft = this.bgm.duration - this.bgm.currentTime;
+                    
                     if(timeLeft <= 5) {
                         this.bgm.volume = Math.max(0, timeLeft / 5 * 0.5); 
                     } else if (this.bgm.volume < 0.5 && !this.isMuted) {
@@ -762,9 +768,40 @@
                 });
             },
 
+            // Manual Fade Out (Entering Game)
+            fadeOut: function() {
+                if(!this.bgm) return;
+                this.isFading = true;
+                if(this.fadeInterval) clearInterval(this.fadeInterval);
+                this.fadeInterval = setInterval(() => {
+                    if (this.bgm.volume > 0.05) {
+                        this.bgm.volume -= 0.05;
+                    } else {
+                        this.bgm.volume = 0;
+                        this.bgm.pause();
+                        clearInterval(this.fadeInterval);
+                        this.isFading = false;
+                    }
+                }, 50); 
+            },
+
+            // Manual Fade In (Returning to Lobby)
             playBGM: function() {
                 if (!this.isMuted && this.bgm) {
-                    this.bgm.play().catch(e => console.log("等待互動播放..."));
+                    this.isFading = true;
+                    this.bgm.volume = 0;
+                    this.bgm.play().catch(e => console.log("Waiting interaction..."));
+                    
+                    if(this.fadeInterval) clearInterval(this.fadeInterval);
+                    this.fadeInterval = setInterval(() => {
+                        if (this.bgm.volume < 0.5) {
+                            this.bgm.volume += 0.05;
+                        } else {
+                            this.bgm.volume = 0.5;
+                            clearInterval(this.fadeInterval);
+                            this.isFading = false;
+                        }
+                    }, 50);
                 }
             },
 
@@ -800,6 +837,7 @@
             }
         };
 
+        // ★ 修改：綁定所有按鈕的點擊音效 (改為 pointerdown 加速反應)
         document.addEventListener('pointerdown', (e) => {
             if (e.target.closest('.clickable-btn, .nav-item, .w-btn, .close-gold-btn, .game-card, .r-tab-btn, .w-option, .opt-item, .mail-item, .send-btn, .compose-btn, .mail-delete-btn')) {
                 LobbyAudio.playClick();
@@ -808,8 +846,10 @@
 
         LobbyAudio.init();
 
+
         function initUser() {
             const authModal = document.getElementById('auth-modal');
+            
             if (myUserId) {
                 db.ref('players/' + myUserId).once('value', (snapshot) => {
                     const data = snapshot.val();
@@ -880,6 +920,7 @@
             });
         }
 
+        // ★ [修正] 訪客登入 (加入自動刪除機制)
         window.doGuestLogin = function() {
             const guestId = 'guest_' + Date.now();
             const guestUser = {
@@ -894,7 +935,10 @@
                     sessionStorage.setItem('casino_guest_id', guestId);
                     myUserId = guestId;
                     currentUser = guestUser;
+                    
+                    // ★ 設定斷線自動刪除
                     db.ref('players/' + guestId).onDisconnect().remove();
+
                     document.getElementById('auth-modal').classList.remove('active');
                     updateUserUI();
                     startTickerListener();
@@ -949,7 +993,7 @@
                 return;
             }
             if(element.classList.contains('claimed')) return; 
-            if(element.classList.contains('normal')) return;
+            if(element.classList.contains('normal')) return; // 鎖定狀態不可點
 
             const today = new Date().setHours(0,0,0,0);
             const lastDate = currentUser.lastLoginDate || 0;
@@ -1118,13 +1162,7 @@
                 if (localStorage.getItem('read_' + id) !== 'true') {
                     localStorage.setItem('read_' + id, 'true');
                     // 重新渲染以更新狀態
-                    const sysMails = getSystemMails(); 
-                    // 這裡簡化，直接觸發一次重繪
-                    db.ref('players/' + myUserId + '/mailbox').once('value', snapshot => {
-                         // Re-trigger render logic
-                         // For simplicity, just update UI class manually or reload
-                         initMailboxListener(); // Reload list
-                    });
+                    initMailboxListener(); 
                     
                     if (reward > 0) {
                         updateUserBalance(reward);
@@ -1162,15 +1200,7 @@
 
         // 7. 切換寫信介面
         window.toggleComposeView = function(show) {
-            const listView = document.getElementById('view-mail');
-            const composeView = document.getElementById('view-compose');
-            
             if(show) {
-                listView.classList.remove('active'); // 暫時隱藏列表，雖然都在 rewards-content 裡，但我們用 active class 控制 r-view
-                // 修正：上面的 switchRewardTab 切換的是 ID 為 view-mail 的 div
-                // 我們需要在 view-mail 內部做切換，或者把 view-compose 當作獨立 view
-                
-                // 簡單做法：隱藏 view-mail 的內容，顯示 view-compose
                 document.querySelector('#view-mail').classList.remove('active');
                 document.querySelector('#view-compose').classList.add('active');
             } else {
@@ -1377,7 +1407,7 @@
             if (type === 'support') alert("正在為您連線線上客服...");
             else if (type === 'history') alert("📊 投注紀錄功能開發中");
             else if (type === 'lang') alert("Language switched.");
-            else if (type === 'version') alert("Casino Lobby\nv1.4.0 Ultimate");
+            else if (type === 'version') alert("Casino Lobby\nv1.4.1 Ultimate");
         }
         document.addEventListener('click', (e) => {
             if (optionDropdown.classList.contains('active') && !optionDropdown.contains(e.target) && e.target !== optionBtn) {
@@ -1465,7 +1495,6 @@
             event.target.classList.add('active');
             document.querySelectorAll('.r-view').forEach(v => v.classList.remove('active'));
             if(tabName === 'mail') {
-                // 重置回列表
                 document.getElementById('view-compose').classList.remove('active');
                 document.getElementById('view-mail').classList.add('active');
             } else {
@@ -1510,6 +1539,7 @@
                     if(iframe) iframe.remove(); 
                     if(dragonCard) dragonCard.classList.remove('launching');
                     overlay.classList.remove('active'); 
+                    LobbyAudio.playBGM(); // ★ 淡入
                     if(myUserId) db.ref('players/' + myUserId).once('value');
                 }, 500);
             }
@@ -1532,6 +1562,7 @@
             if (dragonCard) {
                 dragonCard.addEventListener('click', function() {
                     if (this.classList.contains('launching')) return;
+                    LobbyAudio.fadeOut(); // ★ 淡出
                     this.classList.add('launching');
                     setTimeout(() => {
                         overlay.classList.add('active'); 
