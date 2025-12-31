@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Casino Lobby - Refined</title>
+    <title>Casino Lobby - Ultimate</title>
     <style>
         /* --- 全局設定 --- */
         :root {
@@ -13,7 +13,6 @@
         }
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         
-        /* 1. Body 設定 */
         body {
             background-color: #000;
             width: 100vw; height: 100vh; overflow: hidden;
@@ -22,7 +21,6 @@
             background: radial-gradient(circle at center, #333333 0%, #000000 85%);
         }
 
-        /* 2. App 容器 */
         .app-container {
             height: 100%; aspect-ratio: 9/16; max-width: 100vw; 
             position: relative; display: flex; flex-direction: column;
@@ -112,6 +110,23 @@
             100% { transform: translateX(-150%); }
         }
 
+        /* --- Option Dropdown Menu --- */
+        #option-dropdown {
+            position: absolute; top: 75%; right: 10px; width: 180px;
+            background: rgba(30, 33, 48, 0.95);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 12px; padding: 5px 0;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8); z-index: 500;
+            transform-origin: top right; transform: scale(0.8); opacity: 0; pointer-events: none;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        #option-dropdown.active { transform: scale(1); opacity: 1; pointer-events: all; }
+        .opt-item { padding: 12px 15px; color: #ccc; font-size: 1.5vh; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: background 0.2s; }
+        .opt-item:active { background: rgba(255, 215, 0, 0.15); color: #fff; }
+        .opt-icon { width: 20px; text-align: center; }
+        .opt-divider { height: 1px; background: rgba(255,255,255,0.1); margin: 4px 0; }
+
         /* --- 底部導航 --- */
         .bottom-nav {
             position: absolute; bottom: 2.5vh; left: 3%; width: 94%; height: 11.7%;
@@ -166,10 +181,7 @@
             display: flex; flex-direction: column; opacity: 0; pointer-events: none;
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             transform: translate(-50%, -50%) scale(0.8);
-            box-shadow: 
-                0 20px 60px rgba(0,0,0,0.9), 
-                inset 0 0 30px rgba(255, 255, 255, 0.05),
-                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.9), inset 0 0 30px rgba(255, 255, 255, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.2);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
         .dashboard-panel.active { opacity: 1; pointer-events: all; transform: translate(-50%, -50%) scale(1); }
@@ -298,60 +310,44 @@
         
         #close-game-btn { position: absolute; top: 40px; left: 20px; z-index: 20001; display: none !important; }
         
-        /* --- [新增] Auth Modal Styles --- */
+        /* --- [Visual Upgraded] Auth Modal Styles --- */
         #auth-modal { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.95); /* 背景黑一點，專注登入 */
-            z-index: 30000; /* 最上層，比遊戲層還高 */
+            /* 修改背景透明度，讓底下的 Lobby 背景能透出來 */
+            background: rgba(0,0,0,0.6); 
+            backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+            z-index: 30000; 
             display: flex; justify-content: center; align-items: center; 
-            opacity: 0; pointer-events: none; transition: opacity 0.3s; 
+            opacity: 0; pointer-events: none; transition: opacity 0.5s ease-in-out; 
         }
         #auth-modal.active { opacity: 1; pointer-events: all; }
 
-        /* --- [新增] Option Dropdown Menu --- */
+        /* 新增登入按鈕區域的樣式調整 */
+        .auth-actions-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .btn-full-width {
+            width: 100%;
+            grid-column: 1 / -1; /* 跨滿兩欄 */
+        }
+
+        /* --- Option Dropdown Menu --- */
         #option-dropdown {
-            position: absolute;
-            top: 75%; /* 在 header 下方 */
-            right: 10px;
-            width: 180px;
+            position: absolute; top: 75%; right: 10px; width: 180px;
             background: rgba(30, 33, 48, 0.95);
             backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 215, 0, 0.3);
-            border-radius: 12px;
-            padding: 5px 0;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-            z-index: 500;
-            
-            /* 動畫設定：預設隱藏 */
-            transform-origin: top right;
-            transform: scale(0.8);
-            opacity: 0;
-            pointer-events: none;
+            border-radius: 12px; padding: 5px 0;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8); z-index: 500;
+            transform-origin: top right; transform: scale(0.8); opacity: 0; pointer-events: none;
             transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-
-        #option-dropdown.active {
-            transform: scale(1);
-            opacity: 1;
-            pointer-events: all;
-        }
-
-        .opt-item {
-            padding: 12px 15px;
-            color: #ccc;
-            font-size: 1.5vh;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .opt-item:active {
-            background: rgba(255, 215, 0, 0.15);
-            color: #fff;
-        }
-
+        #option-dropdown.active { transform: scale(1); opacity: 1; pointer-events: all; }
+        .opt-item { padding: 12px 15px; color: #ccc; font-size: 1.5vh; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: background 0.2s; }
+        .opt-item:active { background: rgba(255, 215, 0, 0.15); color: #fff; }
         .opt-icon { width: 20px; text-align: center; }
         .opt-divider { height: 1px; background: rgba(255,255,255,0.1); margin: 4px 0; }
 
@@ -389,8 +385,11 @@
                     <span class="opt-icon">🌐</span> 語言: 繁體中文
                 </div>
                 <div class="opt-divider"></div>
+                <div class="opt-item" id="opt-auth-item" onclick="handleAuthAction()">
+                    <span class="opt-icon">👋</span> 登出帳號
+                </div>
                 <div class="opt-item" onclick="optAction('version')">
-                    <span class="opt-icon">ℹ️</span> 版本: v1.0.2
+                    <span class="opt-icon">ℹ️</span> 版本: v1.2.0
                 </div>
             </div>
 
@@ -451,21 +450,21 @@
                         <div class="day-box claimed">
                             <span class="day-num">Day 1</span>
                             <img src="gold.png" class="day-coin-img">
-                            <span class="day-val">1000</span>
+                            <span class="day-val">10,000</span>
                         </div>
-                        <div class="day-box active" onclick="claimDaily(this, 2000)">
+                        <div class="day-box active" onclick="claimDaily(this, 10000)">
                             <span class="day-num">Day 2</span>
                             <img src="gold.png" class="day-coin-img">
-                            <span class="day-val">2,000</span>
+                            <span class="day-val">10,000</span>
                         </div>
-                        <div class="day-box"><span class="day-num">Day 3</span><img src="gold.png" class="day-coin-img" style="opacity:0.5"><span class="day-val" style="color:#666">3,000</span></div>
-                        <div class="day-box"><span class="day-num">Day 4</span><img src="gold.png" class="day-coin-img" style="opacity:0.5"><span class="day-val" style="color:#666">4,000</span></div>
-                        <div class="day-box"><span class="day-num">Day 5</span><img src="gold.png" class="day-coin-img" style="opacity:0.5"><span class="day-val" style="color:#666">5,000</span></div>
-                        <div class="day-box"><span class="day-num">Day 6</span><img src="gold.png" class="day-coin-img" style="opacity:0.5"><span class="day-val" style="color:#666">8,000</span></div>
+                        <div class="day-box"><span class="day-num">Day 3</span><img src="gold.png" class="day-coin-img" style="opacity:0.5"><span class="day-val" style="color:#666">10,000</span></div>
+                        <div class="day-box"><span class="day-num">Day 4</span><img src="gold.png" class="day-coin-img" style="opacity:0.5"><span class="day-val" style="color:#666">10,000</span></div>
+                        <div class="day-box"><span class="day-num">Day 5</span><img src="gold.png" class="day-coin-img" style="opacity:0.5"><span class="day-val" style="color:#666">10,000</span></div>
+                        <div class="day-box"><span class="day-num">Day 6</span><img src="gold.png" class="day-coin-img" style="opacity:0.5"><span class="day-val" style="color:#666">10,000</span></div>
                         <div class="day-box day-7">
                             <span class="day-num">Day 7 - MEGA BOX</span>
                             <img src="events.png" class="day-coin-img" style="width: 15%; opacity:0.5">
-                            <span class="day-val" style="color:#666">20,000</span>
+                            <span class="day-val" style="color:#666">100,000</span>
                         </div>
                     </div>
                 </div>
@@ -488,14 +487,6 @@
                             </div>
                             <div class="mail-status">未讀</div>
                         </div>
-                        <div class="mail-item">
-                            <div class="mail-icon">✉️</div>
-                            <div class="mail-info">
-                                <div class="mail-title">歡迎加入 Casino Lobby</div>
-                                <div class="mail-date">2025/12/01 00:00</div>
-                            </div>
-                            <div class="mail-status">已讀</div>
-                        </div>
                     </div>
                 </div>
 
@@ -503,12 +494,10 @@
                     <div class="gift-container">
                         <img src="player.png" style="width: 80px; border-radius:50%; border:2px solid #ffd700;">
                         <div style="color:#fff; font-weight:bold;">贈送金幣給好友</div>
-                        
                         <div class="gift-input-group">
                             <span class="gift-label">好友 ID / E-mail</span>
                             <input type="text" class="gift-input" placeholder="輸入玩家 ID...">
                         </div>
-                        
                         <div class="gift-input-group">
                             <span class="gift-label">贈送金額</span>
                             <select class="gift-input">
@@ -517,13 +506,10 @@
                                 <option>10,000 金幣</option>
                             </select>
                         </div>
-
-                        <button class="send-btn" onclick="alert('發送成功！您的好友將收到金幣。')">確認發送</button>
+                        <button class="send-btn" onclick="alert('發送成功！')">確認發送</button>
                     </div>
                 </div>
-
             </div>
-
             <div class="panel-footer">
                 <div class="close-gold-btn" id="close-rewards-btn">CLOSE</div>
             </div>
@@ -587,26 +573,27 @@
             </div>
         </div>
 
-        <div id="auth-modal" class="active"> <div class="wallet-box" style="width: 40vh; max-width: 90%;">
+        <div id="auth-modal"> <div class="wallet-box" style="width: 40vh; max-width: 90%;">
                 <div class="w-header">
                     <div class="w-title" id="auth-title">登入 / 註冊</div>
-                    <div class="w-balance" style="color:#aaa;">請輸入您的暱稱與密碼</div>
+                    <div class="w-balance" style="color:#aaa;">歡迎回到 Casino Lobby</div>
                 </div>
                 
                 <div style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px;">
                     <div>
                         <span class="gift-label">帳號 (暱稱)</span>
-                        <input type="text" id="auth-name" class="gift-input" placeholder="請輸入暱稱 (不可重複)" style="background: rgba(0,0,0,0.5);">
+                        <input type="text" id="auth-name" class="gift-input" placeholder="暱稱" style="background: rgba(0,0,0,0.5);">
                     </div>
                     <div>
                         <span class="gift-label">密碼</span>
-                        <input type="text" id="auth-pass" class="gift-input" placeholder="請設定密碼 (自訂)" style="background: rgba(0,0,0,0.5);">
+                        <input type="text" id="auth-pass" class="gift-input" placeholder="密碼" style="background: rgba(0,0,0,0.5);">
                     </div>
                 </div>
 
-                <div class="w-actions">
-                    <button class="w-btn cancel" style="background: #444; color: #fff;" onclick="doLogin()">登入</button>
-                    <button class="w-btn confirm" onclick="doRegister()">註冊新帳號</button>
+                <div class="auth-actions-grid">
+                    <button class="w-btn confirm" onclick="doLogin()">登入</button>
+                    <button class="w-btn cancel" style="background: rgba(255,255,255,0.15); color: #ddd;" onclick="doGuestLogin()">訪客試玩</button>
+                    <button class="w-btn confirm btn-full-width" style="background: linear-gradient(90deg, #4b0082, #8a2be2); color:#fff; margin-top:5px;" onclick="doRegister()">註冊新帳號</button>
                 </div>
             </div>
         </div>
@@ -644,7 +631,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
     <script>
-        // --- 1. Firebase Configuration & Initialization ---
+        // --- 1. Firebase Configuration ---
         const firebaseConfig = {
             apiKey: "AIzaSyA13JH6n_YRY2Rtiuq2u3iN4mEe5cQL8Bo",
             authDomain: "casino-lobby-123f5.firebaseapp.com",
@@ -659,63 +646,77 @@
         }
         const db = firebase.database();
 
-        // --- 2. User Logic with Firebase (全新帳號密碼版) ---
+        // --- 2. User Logic ---
         let currentUser = null;
         let myUserId = localStorage.getItem('casino_firebase_uid');
+        let guestSessionId = sessionStorage.getItem('casino_guest_id');
 
-        // 系統啟動時檢查
         function initUser() {
             const authModal = document.getElementById('auth-modal');
             
-            // 如果本機已經有紀錄 ID，嘗試自動登入
+            // 優先檢查正式登入
             if (myUserId) {
                 db.ref('players/' + myUserId).once('value', (snapshot) => {
                     const data = snapshot.val();
-                    
-                    // ★ 修改關鍵：多加了 "&& data.password"
-                    // 只有當資料存在，且「有密碼」(表示是新版註冊帳號) 時，才自動登入
                     if (data && data.password) {
-                        // 有資料且有密碼 -> 自動登入
                         currentUser = data;
-                        authModal.classList.remove('active'); // 隱藏登入框
                         updateUserUI();
                         startTickerListener(); 
                         listenUserData(); 
                     } else {
-                        // 情況 A: ID 無效 (被後台刪除)
-                        // 情況 B: 是舊版遊客帳號 (有資料但沒密碼)
-                        // -> 清除舊紀錄，保持登入框顯示，讓玩家重新註冊
+                        // 舊資料無效，顯示登入框
                         localStorage.removeItem('casino_firebase_uid');
-                        authModal.classList.add('active');
+                        showAuthModalWithDelay();
                     }
                 });
-            } else {
-                // 沒資料，顯示登入框
-                authModal.classList.add('active');
+            } 
+            // 其次檢查是否為訪客 (頁面刷新保持狀態)
+            else if (guestSessionId) {
+                db.ref('players/' + guestSessionId).once('value', (snapshot) => {
+                    const data = snapshot.val();
+                    if(data) {
+                        myUserId = guestSessionId;
+                        currentUser = data;
+                        updateUserUI();
+                        startTickerListener();
+                        listenUserData();
+                    } else {
+                        sessionStorage.removeItem('casino_guest_id');
+                        showAuthModalWithDelay();
+                    }
+                });
+            }
+            else {
+                // 完全沒登入
+                showAuthModalWithDelay();
             }
         }
 
-        // 登入功能
+        // 延遲顯示登入框，讓背景先出來
+        function showAuthModalWithDelay() {
+            const authModal = document.getElementById('auth-modal');
+            setTimeout(() => {
+                authModal.classList.add('active');
+            }, 800); // 0.8秒後浮現
+        }
+
         window.doLogin = function() {
             const name = document.getElementById('auth-name').value.trim();
             const pass = document.getElementById('auth-pass').value.trim();
-
             if(!name || !pass) { alert("請輸入帳號與密碼"); return; }
 
-            // ★ 查詢資料庫：找名字一樣的
             db.ref('players').orderByChild('name').equalTo(name).once('value', (snapshot) => {
                 if (snapshot.exists()) {
-                    // 找到該名字，檢查密碼
                     let foundUser = false;
                     snapshot.forEach(child => {
                         const userData = child.val();
                         if (userData.password === pass) {
-                            // 密碼正確
                             foundUser = true;
-                            myUserId = child.key; // 取得該用戶的亂碼 ID
+                            myUserId = child.key;
                             localStorage.setItem('casino_firebase_uid', myUserId);
+                            // 清除訪客紀錄
+                            sessionStorage.removeItem('casino_guest_id'); 
                             currentUser = userData;
-                            
                             document.getElementById('auth-modal').classList.remove('active');
                             updateUserUI();
                             startTickerListener();
@@ -723,49 +724,70 @@
                             alert("歡迎回來，" + userData.name + "！");
                         }
                     });
-
-                    if (!foundUser) {
-                        alert("密碼錯誤！(或是您可以聯繫管理員查詢)");
-                    }
+                    if (!foundUser) alert("密碼錯誤！");
                 } else {
                     alert("找不到此帳號，請先註冊。");
                 }
             });
         }
 
-        // 註冊功能
+        // ★ 新增：訪客登入
+        window.doGuestLogin = function() {
+            const guestId = 'guest_' + Date.now();
+            const guestUser = {
+                name: "Guest",
+                balance: 10000,
+                vip: 0,
+                isGuest: true
+            };
+            
+            // 寫入資料庫 (為了讓遊戲能讀取)
+            db.ref('players/' + guestId).set(guestUser, (error) => {
+                if(!error) {
+                    // 只存 Session，關閉瀏覽器即失效 (邏輯上)
+                    sessionStorage.setItem('casino_guest_id', guestId);
+                    myUserId = guestId;
+                    currentUser = guestUser;
+                    document.getElementById('auth-modal').classList.remove('active');
+                    updateUserUI();
+                    startTickerListener();
+                    listenUserData();
+                    alert("已進入訪客模式\n(注意：離開後資料將不保留)");
+                }
+            });
+        }
+
+        // ★ 修改：註冊 (10萬起始金)
         window.doRegister = function() {
             const name = document.getElementById('auth-name').value.trim();
             const pass = document.getElementById('auth-pass').value.trim();
-
             if(!name || !pass) { alert("請輸入帳號與密碼"); return; }
 
-            // ★ 步驟 1: 檢查名字是否重複
             db.ref('players').orderByChild('name').equalTo(name).once('value', (snapshot) => {
                 if (snapshot.exists()) {
                     alert("這個暱稱已經有人使用了，請換一個！");
                     return;
                 }
-
-                // ★ 步驟 2: 名字沒重複，建立新帳號
-                const newId = 'user_' + Date.now(); // 用時間戳記當 ID
+                const newId = 'user_' + Date.now();
                 const newUser = {
                     name: name,
-                    password: pass, // ★ 這裡儲存密碼 (後台可見)
-                    balance: 10000,
+                    password: pass,
+                    balance: 100000, // ★ 10萬
                     vip: 1,
-                    joinedAt: Date.now()
+                    joinedAt: Date.now(),
+                    lastLoginDate: 0, // 用於連續簽到
+                    loginStreak: 0
                 };
 
                 db.ref('players/' + newId).set(newUser, (error) => {
                     if (error) {
                         alert("註冊失敗：" + error.message);
                     } else {
-                        alert("註冊成功！獲得體驗金 10,000");
+                        alert("註冊成功！獲得體驗金 100,000");
                         myUserId = newId;
                         localStorage.setItem('casino_firebase_uid', myUserId);
+                        sessionStorage.removeItem('casino_guest_id');
                         currentUser = newUser;
-                        
                         document.getElementById('auth-modal').classList.remove('active');
                         updateUserUI();
                         startTickerListener();
@@ -775,7 +797,53 @@
             });
         }
 
-        // 實時監聽數據變動 (餘額更新用)
+        // ★ 修改：每日簽到邏輯 (1萬/10萬 + 連續)
+        window.claimDaily = function(element, amount) { // amount 參數這裡其實沒用了，改由後端邏輯決定
+            if(currentUser.isGuest) {
+                alert("訪客無法使用獎勵功能，請註冊正式帳號！");
+                return;
+            }
+            if(element.classList.contains('claimed')) return;
+
+            const today = new Date().setHours(0,0,0,0);
+            const lastDate = currentUser.lastLoginDate || 0;
+            let streak = currentUser.loginStreak || 0;
+            
+            // 判斷是否已經領過
+            if (lastDate === today) {
+                alert("今天已經領過囉！明天再來吧！");
+                return;
+            }
+
+            // 判斷連續
+            const oneDay = 86400000;
+            if (today - lastDate > oneDay) {
+                streak = 1; // 中斷，重算
+            } else {
+                streak++; // 連續
+            }
+
+            let bonus = 10000;
+            let msg = `🎉 簽到成功！獲得 ${bonus.toLocaleString()} 金幣！(第 ${streak} 天)`;
+
+            if (streak >= 7) {
+                bonus = 100000;
+                streak = 0; // 第七天領完重置循環? 或是保持? 這裡設為領完大獎重置循環
+                msg = `🔥 連續簽到 7 天！獲得大獎 ${bonus.toLocaleString()} 金幣！`;
+            }
+
+            // 更新資料庫
+            db.ref('players/' + myUserId).update({
+                balance: (currentUser.balance || 0) + bonus,
+                lastLoginDate: today,
+                loginStreak: streak
+            });
+
+            element.classList.remove('active'); 
+            element.classList.add('claimed');
+            alert(msg);
+        }
+
         function listenUserData() {
             if(!myUserId) return;
             db.ref('players/' + myUserId).on('value', (snapshot) => {
@@ -783,11 +851,13 @@
                 if(data) {
                     currentUser = data;
                     updateUserUI();
+                } else {
+                    // 資料被刪除 (例如訪客被清)
+                    location.reload();
                 }
             });
         }
 
-        // 啟動跑馬燈監聽 (從 initUser 拆出來)
         function startTickerListener() {
             db.ref('system/ticker').on('value', (snapshot) => {
                 const msg = snapshot.val();
@@ -804,41 +874,89 @@
         function updateUserUI() {
             if(!currentUser) return;
             document.querySelector('.coin-number').innerText = currentUser.balance.toLocaleString('en-US', {minimumFractionDigits: 2});
-            document.querySelector('.vip-text').innerText = "VIP." + currentUser.vip;
+            document.querySelector('.vip-text').innerText = currentUser.isGuest ? "GUEST" : "VIP." + currentUser.vip;
             document.querySelector('.p-name').innerText = currentUser.name;
-            document.querySelector('.p-id').innerText = "ID: " + currentUser.name; // 顯示名字就好
+            document.querySelector('.p-id').innerText = "ID: " + currentUser.name;
             document.querySelector('.w-balance').innerText = "當前餘額: " + currentUser.balance.toLocaleString('en-US', {minimumFractionDigits: 2});
+            
+            // ★ 更新選單按鈕
+            const authItem = document.getElementById('opt-auth-item');
+            if (authItem) {
+                if (currentUser.isGuest) {
+                    authItem.innerHTML = '<span class="opt-icon">🔐</span> 登入帳號';
+                } else {
+                    authItem.innerHTML = '<span class="opt-icon">👋</span> 登出帳號';
+                }
+            }
         }
 
         function updateUserBalance(amount) {
+            if(currentUser.isGuest) return; 
             db.ref('players/' + myUserId + '/balance').transaction((currentBalance) => {
                 return (currentBalance || 0) + amount;
             });
         }
 
-        function logout() {
-            if(confirm("確定要登出嗎？")) {
-                localStorage.removeItem('casino_firebase_uid');
-                location.reload(); 
+        // ★ 新增：處理選單內的登入/登出
+        function handleAuthAction() {
+            if (currentUser && currentUser.isGuest) {
+                document.getElementById('auth-modal').classList.add('active');
+            } else {
+                logout();
             }
         }
 
-        // --- 3. Navigation & Panels ---
+        // ★ 修改：登出 (現在是切換為訪客)
+        function logout() {
+            if(confirm("確定要登出並切換為訪客身份嗎？")) {
+                localStorage.removeItem('casino_firebase_uid');
+                
+                // 直接建立一個臨時訪客並重整，讓體驗無縫接軌
+                const guestId = 'guest_' + Date.now();
+                const guestUser = {
+                    name: "Guest",
+                    balance: 10000,
+                    vip: 0,
+                    isGuest: true
+                };
+                
+                db.ref('players/' + guestId).set(guestUser).then(() => {
+                    sessionStorage.setItem('casino_guest_id', guestId);
+                    location.reload(); 
+                });
+            }
+        }
+
+        // --- 3. UI Logic (Option, Panels) ---
+        const optionBtn = document.querySelector('.menu-btn');
+        const optionDropdown = document.getElementById('option-dropdown');
+        if (optionBtn) {
+            optionBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                optionDropdown.classList.toggle('active');
+            });
+        }
+        window.optAction = function(type) {
+            optionDropdown.classList.remove('active');
+            if (type === 'support') alert("正在為您連線線上客服...");
+            else if (type === 'history') alert("📊 投注紀錄功能開發中");
+            else if (type === 'lang') alert("Language switched.");
+            else if (type === 'version') alert("Casino Lobby\nv1.2.0 Ultimate");
+        }
+        document.addEventListener('click', (e) => {
+            if (optionDropdown.classList.contains('active') && !optionDropdown.contains(e.target) && e.target !== optionBtn) {
+                optionDropdown.classList.remove('active');
+            }
+        });
+
         const navItems = document.querySelectorAll('.nav-item');
         const mainScroll = document.querySelector('.main-scroll-area');
-        
         const slotsPanel = document.getElementById('slots-panel');
         const rewardsPanel = document.getElementById('rewards-panel');
         const profilePanel = document.getElementById('profile-panel');
         const rankingsPanel = document.getElementById('rankings-panel'); 
-        
-        const closeSlotsBtn = document.getElementById('close-slots-btn');
-        const closeRewardsBtn = document.getElementById('close-rewards-btn');
-        const closeProfileBtn = document.getElementById('close-profile-btn');
-        const closeRankingsBtn = document.getElementById('close-rankings-btn'); 
-        
+        const closeButtons = document.querySelectorAll('.close-gold-btn');
         const navHome = document.getElementById('nav-home');
-        
         const walletModal = document.getElementById('wallet-modal');
         const closeWalletBtn = document.getElementById('close-wallet-btn');
         const plusBtn = document.querySelector('.plus-btn');
@@ -847,7 +965,6 @@
             item.addEventListener('click', () => {
                 navItems.forEach(i => i.classList.remove('active'));
                 item.classList.add('active');
-
                 if (item.id === 'nav-slots') openPanel(slotsPanel);
                 else if (item.id === 'nav-rewards') openPanel(rewardsPanel);
                 else if (item.id === 'nav-profile') openPanel(profilePanel);
@@ -871,43 +988,26 @@
             navHome.classList.add('active');
         }
 
-        closeSlotsBtn.addEventListener('click', closeAllPanels);
-        closeRewardsBtn.addEventListener('click', closeAllPanels);
-        closeProfileBtn.addEventListener('click', closeAllPanels);
-        closeRankingsBtn.addEventListener('click', closeAllPanels); 
+        closeButtons.forEach(btn => btn.addEventListener('click', closeAllPanels));
 
-        // --- Rankings Logic ---
         function openRankingsPanel() {
             openPanel(rankingsPanel);
             const listDiv = document.getElementById('rank-list-content');
-            listDiv.innerHTML = '<div style="text-align:center; color:#888;">正在讀取數據...</div>';
-
+            listDiv.innerHTML = '<div style="text-align:center; color:#888;">載入中...</div>';
             db.ref('players').orderByChild('balance').limitToLast(10).once('value', (snapshot) => {
                 listDiv.innerHTML = '';
                 const players = [];
-                snapshot.forEach(child => {
-                    players.push(child.val());
-                });
+                snapshot.forEach(child => { players.push(child.val()); });
                 players.reverse();
-
                 players.forEach((p, index) => {
                     const item = document.createElement('div');
                     item.className = 'rank-item';
-                    item.innerHTML = `
-                        <div class="rank-num">${index + 1}</div>
-                        <img src="player.png" class="rank-avatar">
-                        <div class="rank-info">
-                            <div class="rank-name">${p.name}</div>
-                            <div class="rank-vip">VIP.${p.vip || 1}</div>
-                        </div>
-                        <div class="rank-val">${(p.balance || 0).toLocaleString()}</div>
-                    `;
+                    item.innerHTML = `<div class="rank-num">${index + 1}</div><img src="player.png" class="rank-avatar"><div class="rank-info"><div class="rank-name">${p.name}</div><div class="rank-vip">VIP.${p.vip || 0}</div></div><div class="rank-val">${(p.balance || 0).toLocaleString()}</div>`;
                     listDiv.appendChild(item);
                 });
             });
         }
 
-        // --- Ghost Ticker Logic ---
         function showGhostTicker(msg) {
             const ticker = document.getElementById('ghost-ticker');
             const text = document.getElementById('ticker-text');
@@ -915,110 +1015,60 @@
             text.style.animation = 'none'; 
             ticker.offsetHeight; 
             ticker.classList.add('active');
-            
-            setTimeout(() => {
-                text.style.animation = 'scrollText 10s linear forwards';
-            }, 100);
-
-            setTimeout(() => {
-                ticker.classList.remove('active');
-            }, 10000);
+            setTimeout(() => { text.style.animation = 'scrollText 10s linear forwards'; }, 100);
+            setTimeout(() => { ticker.classList.remove('active'); }, 10000);
         }
-
-        // --- [新增] Option Menu Logic ---
-        const optionBtn = document.querySelector('.menu-btn');
-        const optionDropdown = document.getElementById('option-dropdown');
-
-        // 點擊按鈕：切換選單開關
-        if (optionBtn) {
-            optionBtn.addEventListener('click', (e) => {
-                e.stopPropagation(); // 阻止事件冒泡，避免觸發 document 的點擊關閉
-                optionDropdown.classList.toggle('active');
-            });
-        }
-
-        // 點擊選單內的項目
-        window.optAction = function(type) {
-            optionDropdown.classList.remove('active'); // 點完就關閉
-            
-            if (type === 'support') {
-                alert("正在為您連線線上客服...\n(目前客服忙線中，請稍後)");
-            } else if (type === 'history') {
-                alert("📊 投注紀錄功能開發中\n這裡將會顯示您最近 10 筆遊戲結果。");
-            } else if (type === 'lang') {
-                alert("Language switched to English.\n(介面即將重新載入)");
-            } else if (type === 'version') {
-                alert("Casino Lobby\n版本: v1.0.2 (Beta)\n開發者: ZEND Studio");
-            }
-        }
-
-        // 點擊畫面其他地方：關閉選單
-        document.addEventListener('click', (e) => {
-            if (optionDropdown.classList.contains('active')) {
-                // 如果點擊的不是選單本身，也不是按鈕，就關閉
-                if (!optionDropdown.contains(e.target) && e.target !== optionBtn) {
-                    optionDropdown.classList.remove('active');
-                }
-            }
-        });
-
-        // --- 4. Feature Logic ---
-        const tabs = document.querySelectorAll('.tab-item');
-        tabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                tabs.forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-            });
-        });
 
         window.switchRewardTab = function(tabName) {
             const btns = document.querySelectorAll('.r-tab-btn');
             btns.forEach(b => b.classList.remove('active'));
             event.target.classList.add('active');
-            const views = document.querySelectorAll('.r-view');
-            views.forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.r-view').forEach(v => v.classList.remove('active'));
             document.getElementById(`view-${tabName}`).classList.add('active');
         }
 
-        window.claimDaily = function(element, amount) {
-            if(element.classList.contains('claimed')) return;
-            element.classList.remove('active'); element.classList.add('claimed');
-            alert(`🎉 簽到成功！獲得 ${amount} 金幣！`);
-            updateUserBalance(amount);
-        }
-
         window.readMail = function(element) {
+            if(currentUser.isGuest) { alert("訪客無法使用信箱"); return; }
             if(element.classList.contains('unread')) {
                 element.classList.remove('unread');
                 element.querySelector('.mail-status').innerText = "已讀";
-                const mailTab = document.querySelectorAll('.r-tab-btn')[1];
-                mailTab.innerText = "信箱 (1)";
                 alert("📩 領取附件：500 金幣");
                 updateUserBalance(500);
             }
         }
 
-        if (plusBtn) plusBtn.addEventListener('click', () => walletModal.classList.add('active'));
+        if (plusBtn) plusBtn.addEventListener('click', () => {
+            if(currentUser.isGuest) { alert("訪客無法儲值"); return; }
+            walletModal.classList.add('active');
+        });
         if (closeWalletBtn) closeWalletBtn.addEventListener('click', () => walletModal.classList.remove('active'));
 
         window.selectRecharge = function(el, amount) {
             document.querySelectorAll('.w-option').forEach(opt => opt.classList.remove('active'));
             el.classList.add('active');
         }
-
         window.confirmRecharge = function() {
             walletModal.classList.remove('active');
             alert("系統提示：正在連線至支付閘道... (模擬成功)");
             updateUserBalance(500000); 
         }
 
-        // --- 5. Game Integration (Cross-window) ---
+        // --- 5. Game Integration ---
         window.addEventListener('message', (event) => {
             if (event.data === 'closeGame') {
                 const overlay = document.getElementById('transition-overlay');
                 const gameContainer = document.getElementById('game-container');
                 const dragonCard = document.getElementById('game-dragon');
                 overlay.classList.add('active'); 
+                
+                // ★ 如果是訪客，離開遊戲後清除 Session (模擬刪除帳號)
+                if(currentUser && currentUser.isGuest) {
+                    sessionStorage.removeItem('casino_guest_id');
+                    // 為了不讓畫面太突兀，我們重新載入頁面回到登入畫面
+                    setTimeout(() => location.reload(), 500);
+                    return;
+                }
+
                 setTimeout(() => {
                     gameContainer.style.display = 'none';
                     const iframe = document.getElementById('game-frame');
@@ -1029,15 +1079,17 @@
                 }, 500);
             }
             if (event.data.type === 'updateBalance') {
-                db.ref('players/' + myUserId).update({
-                    balance: event.data.value
-                });
+                if(!currentUser.isGuest) {
+                    db.ref('players/' + myUserId).update({ balance: event.data.value });
+                } else {
+                    // 訪客也要更新 DB 裡的餘額，不然遊戲畫面不會變，但不需要持久化
+                    db.ref('players/' + myUserId).update({ balance: event.data.value });
+                }
             }
         });
 
         document.addEventListener('DOMContentLoaded', () => {
             initUser(); 
-
             const dragonCard = document.getElementById('game-dragon');
             const overlay = document.getElementById('transition-overlay');
             const gameContainer = document.getElementById('game-container');
@@ -1061,7 +1113,6 @@
                             
                             iframe.onload = () => { 
                                 if(currentUser) {
-                                    console.log("大廳發送初始餘額給遊戲:", currentUser.balance);
                                     iframe.contentWindow.postMessage({
                                         type: 'initBalance', 
                                         value: currentUser.balance
@@ -1069,7 +1120,6 @@
                                 }
                                 setTimeout(() => { overlay.classList.remove('active'); }, 300); 
                             };
-                            
                             setTimeout(() => { if(overlay.classList.contains('active')) overlay.classList.remove('active'); }, 1500);
                         }, 500); 
                     }, 400);
@@ -1077,7 +1127,7 @@
             }
         });
 
-        // --- 6. Visuals ---
+        // --- 6. Visuals (Particles) ---
         (function initLobbyBackground() {
             const canvas = document.getElementById('lobby-bg-canvas');
             const container = document.querySelector('.app-container'); 
