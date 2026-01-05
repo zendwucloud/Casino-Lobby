@@ -53,6 +53,35 @@
             z-index: 1; overflow: hidden;
         }
 
+        /* --- ★ [新增] 智能轉向鎖定提示 (只針對手機) --- */
+        #orientation-lock {
+            display: none; /* 預設隱藏 */
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 100000;
+            flex-direction: column; justify-content: center; align-items: center;
+            color: #f4d06f; text-align: center;
+        }
+        #orientation-lock span {
+            font-size: 5vh; margin-bottom: 20px; display: block;
+            animation: rotatePhone 2s infinite ease-in-out;
+        }
+        #orientation-lock p { font-size: 2.5vh; font-weight: bold; font-family: sans-serif; }
+
+        @keyframes rotatePhone {
+            0% { transform: rotate(-90deg); }
+            50% { transform: rotate(0deg); }
+            100% { transform: rotate(-90deg); }
+        }
+
+        /* ★ [關鍵 CSS] 只有在「橫向」+「觸控裝置(手機)」時才觸發鎖定 */
+        /* PC 用滑鼠 (pointer: fine)，所以不會觸發這段，依然可以正常顯示橫向視窗 */
+        @media screen and (orientation: landscape) and (hover: none) and (pointer: coarse) {
+            .app-container { display: none !important; }
+            #orientation-lock { display: flex; }
+            body { background: #000 !important; }
+        }
+
+
         #lobby-bg-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; mix-blend-mode: screen; }
 
         .gradient-border-box::after {
@@ -155,7 +184,7 @@
         .opt-icon { width: 20px; text-align: center; }
         .opt-divider { height: 1px; background: rgba(255,255,255,0.1); margin: 4px 0; }
 
-        /* --- 底部導航 --- */
+        /* --- 底部導航 (還原深色版) --- */
         .bottom-nav {
             position: absolute; bottom: 2.5vh; left: 3%; width: 94%; height: 11.7%;
             display: flex; justify-content: space-around; align-items: center; z-index: 200;
@@ -166,9 +195,22 @@
         .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; cursor: pointer; width: 20%; height: 100%; transition: transform 0.1s; }
         .nav-item:active { transform: scale(0.9); }
         .nav-icon { height: 75%; width: auto; object-fit: contain; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.3)); transform: scale(0.85) translateY(2px); transition: transform 0.2s; }
-        .nav-label { font-size: 1.6vh; font-weight: 700; color: #aaa; letter-spacing: 0.5px; margin-top: -8px; z-index: 2; text-shadow: 0 1px 2px rgba(0,0,0,0.8); }
+        
+        .nav-label { 
+            font-size: 1.6vh; 
+            font-weight: 700; 
+            color: #aaa; /* 還原淺灰字 */
+            letter-spacing: 0.5px; 
+            margin-top: -8px; 
+            z-index: 2; 
+            text-shadow: 0 1px 2px rgba(0,0,0,0.8); 
+        }
+        
         .nav-item.active .nav-icon { animation: breathe 2.5s ease-in-out infinite; }
-        .nav-item.active .nav-label { color: #fff; text-shadow: 0 0 8px rgba(255, 255, 255, 0.8); }
+        .nav-item.active .nav-label { 
+            color: #fff; /* 選中變亮白 */
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.8); 
+        }
         @keyframes breathe {
             0% { transform: scale(1.1) translateY(2px); filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.4)); }
             50% { transform: scale(1.15) translateY(2px); filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.8)); }
@@ -253,8 +295,25 @@
         .day-coin-img { width: 50%; height: auto; margin-bottom: 5px; filter: drop-shadow(0 0 5px rgba(255,215,0,0.5)); }
         .day-val { font-size: 1.6vh; color: #fff; font-weight: 800; }
         
-        .day-box.claimed { opacity: 0.5; filter: grayscale(1); }
-        .day-box.claimed::after { content: "✔"; position: absolute; font-size: 3vh; color: #00ff00; text-shadow: 0 0 5px #000; font-weight: 900; }
+        /* ★ [修改] 修正灰色濾鏡問題 */
+        .day-box.claimed { 
+            opacity: 0.5; 
+        }
+        /* 內部圖片文字變灰 */
+        .day-box.claimed .day-coin-img, 
+        .day-box.claimed .day-val, 
+        .day-box.claimed .day-num {
+            filter: grayscale(1); 
+        }
+
+        /* ★ [保持] 勾勾為綠色 */
+        .day-box.claimed::after { 
+            content: "✔"; position: absolute; font-size: 3vh; 
+            color: #00ff00; 
+            text-shadow: 0 0 5px #000; font-weight: 900; 
+            filter: none; 
+        }
+
         .day-box.active { border-color: #ffd700; background: rgba(255, 215, 0, 0.1); cursor: pointer; animation: pulseBox 1.5s infinite; opacity: 1; filter: grayscale(0); }
         .day-box.active .day-val { color: #ffd700; text-shadow: 0 0 5px orange; }
         .day-box.normal { opacity: 0.4; filter: grayscale(0.8); pointer-events: none; }
@@ -436,14 +495,45 @@
         .opt-icon { width: 20px; text-align: center; }
         .opt-divider { height: 1px; background: rgba(255,255,255,0.1); margin: 4px 0; }
 
+        /* --- ★ [新增] 智能轉向鎖定提示 (只針對手機) --- */
+        #orientation-lock {
+            display: none; /* 預設隱藏 */
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 100000;
+            flex-direction: column; justify-content: center; align-items: center;
+            color: #f4d06f; text-align: center;
+        }
+        #orientation-lock span {
+            font-size: 5vh; margin-bottom: 20px; display: block;
+            animation: rotatePhone 2s infinite ease-in-out;
+        }
+        #orientation-lock p { font-size: 2.5vh; font-weight: bold; font-family: sans-serif; }
+
+        @keyframes rotatePhone {
+            0% { transform: rotate(-90deg); }
+            50% { transform: rotate(0deg); }
+            100% { transform: rotate(-90deg); }
+        }
+
+        /* ★ [關鍵 CSS] 只有在「橫向」+「觸控裝置(手機)」時才觸發鎖定 */
+        @media screen and (orientation: landscape) and (hover: none) and (pointer: coarse) {
+            .app-container { display: none !important; }
+            #orientation-lock { display: flex; }
+            body { background: #000 !important; }
+        }
     </style>
 </head>
 <body>
 
-    <audio id="bgm_lobby" src="bgm_lobby.mp3" loop preload="auto"></audio>
+    <audio id="bgm_lobby" src="bgm_lobby.mp3" loop preload="auto" autoplay></audio>
     <audio id="sfx_click" src="sfx_click.mp3" preload="auto"></audio>
     <audio id="sfx_take" src="take.mp3" preload="auto"></audio>
     <audio id="sfx_money" src="money.mp3" preload="auto"></audio>
+
+    <div id="orientation-lock">
+        <span>📱</span>
+        <p>請將手機轉為直向<br>以獲得最佳體驗</p>
+    </div>
 
     <div class="app-container">
         
@@ -479,7 +569,7 @@
                     <span class="opt-icon">👋</span> 登出帳號
                 </div>
                 <div class="opt-item" onclick="optAction('version')">
-                    <span class="opt-icon">ℹ️</span> 版本: v1.5.1 Fixed
+                    <span class="opt-icon">ℹ️</span> 版本: v1.5.5 Smart Lock
                 </div>
             </div>
 
@@ -777,6 +867,19 @@
                     toggle.addEventListener('change', (e) => {
                         this.toggleMute(!e.target.checked);
                     });
+                }
+
+                // ★ [新增] 自動播放嘗試
+                if(this.bgm) {
+                     var promise = this.bgm.play();
+                     if (promise !== undefined) {
+                        promise.then(_ => {
+                            // Autoplay started!
+                        }).catch(error => {
+                            // Autoplay was prevented.
+                            console.log("Autoplay prevented by browser policy.");
+                        });
+                     }
                 }
 
                 // ★ [新增] 自動淡出效果 (Fade Out)
@@ -1571,7 +1674,7 @@
             if (type === 'support') alert("正在為您連線線上客服...");
             else if (type === 'history') alert("📊 投注紀錄功能開發中");
             else if (type === 'lang') alert("Language switched.");
-            else if (type === 'version') alert("Casino Lobby\nv1.4.5 Ultimate");
+            else if (type === 'version') alert("Casino Lobby\nv1.5.5 Smart Lock");
         }
         document.addEventListener('click', (e) => {
             if (optionDropdown.classList.contains('active') && !optionDropdown.contains(e.target) && e.target !== optionBtn) {
@@ -1689,7 +1792,6 @@
                 const dragonCard = document.getElementById('game-dragon');
                 overlay.classList.add('active'); 
                 
-                // ★ 訪客離開遊戲後自動刪除
                 if(currentUser && currentUser.isGuest) {
                     db.ref('players/' + myUserId).remove().then(() => {
                         sessionStorage.removeItem('casino_guest_id');
@@ -1831,4 +1933,3 @@
     </script>
 </body>
 </html>
-}
