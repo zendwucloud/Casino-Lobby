@@ -53,7 +53,7 @@
             z-index: 1; overflow: hidden;
         }
 
-        /* --- ★ [新增] 智能轉向鎖定提示 (只針對手機) --- */
+        /* --- ★ 智能轉向鎖定提示 (只針對手機) --- */
         #orientation-lock {
             display: none; /* 預設隱藏 */
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -74,7 +74,6 @@
         }
 
         /* ★ [關鍵 CSS] 只有在「橫向」+「觸控裝置(手機)」時才觸發鎖定 */
-        /* PC 用滑鼠 (pointer: fine)，所以不會觸發這段，依然可以正常顯示橫向視窗 */
         @media screen and (orientation: landscape) and (hover: none) and (pointer: coarse) {
             .app-container { display: none !important; }
             #orientation-lock { display: flex; }
@@ -184,7 +183,7 @@
         .opt-icon { width: 20px; text-align: center; }
         .opt-divider { height: 1px; background: rgba(255,255,255,0.1); margin: 4px 0; }
 
-        /* --- 底部導航 (還原深色版) --- */
+        /* --- 底部導航 (深色版) --- */
         .bottom-nav {
             position: absolute; bottom: 2.5vh; left: 3%; width: 94%; height: 11.7%;
             display: flex; justify-content: space-around; align-items: center; z-index: 200;
@@ -199,7 +198,7 @@
         .nav-label { 
             font-size: 1.6vh; 
             font-weight: 700; 
-            color: #aaa; /* 還原淺灰字 */
+            color: #aaa; 
             letter-spacing: 0.5px; 
             margin-top: -8px; 
             z-index: 2; 
@@ -208,7 +207,7 @@
         
         .nav-item.active .nav-icon { animation: breathe 2.5s ease-in-out infinite; }
         .nav-item.active .nav-label { 
-            color: #fff; /* 選中變亮白 */
+            color: #fff; 
             text-shadow: 0 0 8px rgba(255, 255, 255, 0.8); 
         }
         @keyframes breathe {
@@ -295,25 +294,9 @@
         .day-coin-img { width: 50%; height: auto; margin-bottom: 5px; filter: drop-shadow(0 0 5px rgba(255,215,0,0.5)); }
         .day-val { font-size: 1.6vh; color: #fff; font-weight: 800; }
         
-        /* ★ [修改] 修正灰色濾鏡問題 */
-        .day-box.claimed { 
-            opacity: 0.5; 
-        }
-        /* 內部圖片文字變灰 */
-        .day-box.claimed .day-coin-img, 
-        .day-box.claimed .day-val, 
-        .day-box.claimed .day-num {
-            filter: grayscale(1); 
-        }
-
-        /* ★ [保持] 勾勾為綠色 */
-        .day-box.claimed::after { 
-            content: "✔"; position: absolute; font-size: 3vh; 
-            color: #00ff00; 
-            text-shadow: 0 0 5px #000; font-weight: 900; 
-            filter: none; 
-        }
-
+        .day-box.claimed { opacity: 0.5; }
+        .day-box.claimed .day-coin-img, .day-box.claimed .day-val, .day-box.claimed .day-num { filter: grayscale(1); }
+        .day-box.claimed::after { content: "✔"; position: absolute; font-size: 3vh; color: #00ff00; text-shadow: 0 0 5px #000; font-weight: 900; filter: none; }
         .day-box.active { border-color: #ffd700; background: rgba(255, 215, 0, 0.1); cursor: pointer; animation: pulseBox 1.5s infinite; opacity: 1; filter: grayscale(0); }
         .day-box.active .day-val { color: #ffd700; text-shadow: 0 0 5px orange; }
         .day-box.normal { opacity: 0.4; filter: grayscale(0.8); pointer-events: none; }
@@ -495,32 +478,6 @@
         .opt-icon { width: 20px; text-align: center; }
         .opt-divider { height: 1px; background: rgba(255,255,255,0.1); margin: 4px 0; }
 
-        /* --- ★ [新增] 智能轉向鎖定提示 (只針對手機) --- */
-        #orientation-lock {
-            display: none; /* 預設隱藏 */
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; z-index: 100000;
-            flex-direction: column; justify-content: center; align-items: center;
-            color: #f4d06f; text-align: center;
-        }
-        #orientation-lock span {
-            font-size: 5vh; margin-bottom: 20px; display: block;
-            animation: rotatePhone 2s infinite ease-in-out;
-        }
-        #orientation-lock p { font-size: 2.5vh; font-weight: bold; font-family: sans-serif; }
-
-        @keyframes rotatePhone {
-            0% { transform: rotate(-90deg); }
-            50% { transform: rotate(0deg); }
-            100% { transform: rotate(-90deg); }
-        }
-
-        /* ★ [關鍵 CSS] 只有在「橫向」+「觸控裝置(手機)」時才觸發鎖定 */
-        @media screen and (orientation: landscape) and (hover: none) and (pointer: coarse) {
-            .app-container { display: none !important; }
-            #orientation-lock { display: flex; }
-            body { background: #000 !important; }
-        }
     </style>
 </head>
 <body>
@@ -547,7 +504,7 @@
             <div class="coin-bar">
                 <img src="gold.png" class="gold-icon" alt="G">
                 <div class="center-group">
-                    <span class="coin-number">---</span>
+                    <span class="coin-number">0.00</span>
                     <img src="coins.png" class="coins-text-img" alt="COINS">
                 </div>
                 <img src="+.png" class="plus-btn clickable-btn" alt="+">
@@ -569,7 +526,7 @@
                     <span class="opt-icon">👋</span> 登出帳號
                 </div>
                 <div class="opt-item" onclick="optAction('version')">
-                    <span class="opt-icon">ℹ️</span> 版本: v1.5.5 Smart Lock
+                    <span class="opt-icon">ℹ️</span> 版本: v1.7.0 Stable
                 </div>
             </div>
 
@@ -580,13 +537,7 @@
         </div>
 
         <main class="main-scroll-area">
-            <div class="game-card" id="game-dragon"><img src="game001.png" class="game-img" alt="Dragon"></div>
-            <div class="game-card"><img src="game002.png" class="game-img" alt="Game 2"></div>
-            <div class="game-card"><img src="game003.png" class="game-img" alt="Game 3"></div>
-            <div class="game-card"><img src="game004.png" class="game-img" alt="Game 4"></div>
-            <div class="game-card"><img src="game001.png" class="game-img" alt="Game 5"></div>
-            <div style="height: 5vh;"></div>
-        </main>
+             </main>
 
         <div id="slots-panel" class="dashboard-panel gradient-border-box">
             <div class="panel-header">
@@ -597,19 +548,7 @@
             </div>
             <div class="panel-content">
                 <div class="slots-grid">
-                    <div class="slot-icon"><img src="game001.png" class="slot-thumb"></div>
-                    <div class="slot-icon"><img src="game002.png" class="slot-thumb"></div>
-                    <div class="slot-icon"><img src="game003.png" class="slot-thumb"></div>
-                    <div class="slot-icon"><img src="game004.png" class="slot-thumb"></div>
-                    <div class="slot-icon"><img src="game001.png" class="slot-thumb"></div>
-                    <div class="slot-icon"><img src="game002.png" class="slot-thumb"></div>
-                    <div class="slot-icon"><img src="game003.png" class="slot-thumb"></div>
-                    <div class="slot-icon"><img src="game004.png" class="slot-thumb"></div>
-                    <div class="slot-icon"><img src="game001.png" class="slot-thumb"></div>
-                    <div class="slot-icon"><img src="game002.png" class="slot-thumb"></div>
-                    <div class="slot-icon"><img src="game003.png" class="slot-thumb"></div>
-                    <div class="slot-icon"><img src="game004.png" class="slot-thumb"></div>
-                </div>
+                     </div>
             </div>
             <div class="panel-footer">
                 <div class="close-gold-btn" id="close-slots-btn">CLOSE</div>
@@ -822,38 +761,37 @@
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
         }
-        const db = firebase.database();
+        const db = firebase.database(); // ★ 全域變數 db
 
         // --- 2. User Logic with Firebase (全新帳號密碼版) ---
         let currentUser = null;
         let myUserId = localStorage.getItem('casino_firebase_uid');
         let guestSessionId = sessionStorage.getItem('casino_guest_id');
-        let currentMailsCache = []; // Cache to store mails for re-rendering
+        let currentMailsCache = []; 
 
         // ★ Audio Controller
         const LobbyAudio = {
             bgm: document.getElementById('bgm_lobby'),
             sfxClick: document.getElementById('sfx_click'),
-            sfxTake: document.getElementById('sfx_take'),   // New
-            sfxMoney: document.getElementById('sfx_money'), // New
+            sfxTake: document.getElementById('sfx_take'),   
+            sfxMoney: document.getElementById('sfx_money'), 
             isMuted: false,
             hasInteracted: false, 
-            isFading: false, // Flag for manual fade
+            isFading: false, 
 
             init: function() {
                 const savedMute = localStorage.getItem('lobby_mute');
                 if (savedMute === 'true') {
                     this.isMuted = true;
-                    document.getElementById('bgm-toggle').checked = false;
+                    const toggle = document.getElementById('bgm-toggle');
+                    if(toggle) toggle.checked = false;
                 }
                 
-                // 設置初始音量
                 if(this.bgm) this.bgm.volume = 0.5;
                 if(this.sfxClick) this.sfxClick.volume = 1.0;
-                if(this.sfxTake) this.sfxTake.volume = 1.0;   // New
-                if(this.sfxMoney) this.sfxMoney.volume = 1.0; // New
+                if(this.sfxTake) this.sfxTake.volume = 1.0;   
+                if(this.sfxMoney) this.sfxMoney.volume = 1.0; 
 
-                // 綁定全域點擊事件來啟動音樂 (只執行一次)
                 document.body.addEventListener('click', () => {
                     if (!this.hasInteracted) {
                         this.hasInteracted = true;
@@ -861,7 +799,6 @@
                     }
                 }, { once: true });
                 
-                // 綁定 Toggle 開關
                 const toggle = document.getElementById('bgm-toggle');
                 if(toggle) {
                     toggle.addEventListener('change', (e) => {
@@ -869,66 +806,52 @@
                     });
                 }
 
-                // ★ [新增] 自動播放嘗試
                 if(this.bgm) {
                      var promise = this.bgm.play();
                      if (promise !== undefined) {
-                        promise.then(_ => {
-                            // Autoplay started!
-                        }).catch(error => {
-                            // Autoplay was prevented.
+                        promise.catch(error => {
                             console.log("Autoplay prevented by browser policy.");
                         });
                      }
                 }
 
-                // ★ [新增] 自動淡出效果 (Fade Out)
                 this.bgm.addEventListener('timeupdate', () => {
-                    if(this.isFading) return; // Skip if manual fading
+                    if(this.isFading) return; 
                     if(!this.bgm.duration) return;
                     const timeLeft = this.bgm.duration - this.bgm.currentTime;
                     
-                    // 最後 5 秒開始變小聲
                     if(timeLeft <= 5) {
-                        // 音量從 0.5 慢慢降到 0
                         this.bgm.volume = Math.max(0, timeLeft / 5 * 0.5); 
                     } else if (this.bgm.volume < 0.5 && !this.isMuted) {
-                        // 確保其他時間音量是正常的 0.5
                         this.bgm.volume = 0.5;
                     }
                 });
             },
 
-            // Manual Fade Out (Entering Game)
             fadeOut: function() {
                 if(!this.bgm) return;
                 this.isFading = true;
-                let safetyCounter = 20; // ★ [修正] 安全計數器，防止手機端音量無法修改而卡住
+                let safetyCounter = 20; 
                 
                 if(this.fadeInterval) clearInterval(this.fadeInterval);
                 this.fadeInterval = setInterval(() => {
-                    // 嘗試降低音量 (PC有效)
                     if (this.bgm.volume > 0.05) {
                         try { this.bgm.volume -= 0.05; } catch(e) {}
                     }
-                    
                     safetyCounter--;
-
-                    // 條件達成：音量歸零 OR 嘗試次數超過 (針對手機)
                     if (this.bgm.volume <= 0.05 || safetyCounter <= 0) {
                         this.bgm.pause();
-                        this.bgm.volume = 0.5; // 重置音量給下次用
+                        this.bgm.volume = 0.5; 
                         clearInterval(this.fadeInterval);
                         this.isFading = false;
                     }
                 }, 50); 
             },
 
-            // Manual Fade In (Returning to Lobby)
             playBGM: function() {
                 if (!this.isMuted && this.bgm) {
                     this.isFading = true;
-                    try { this.bgm.volume = 0; } catch(e) {} // 嘗試靜音開始
+                    try { this.bgm.volume = 0; } catch(e) {} 
                     
                     this.bgm.play().catch(e => console.log("Waiting interaction..."));
                     
@@ -939,9 +862,7 @@
                         if (this.bgm.volume < 0.5) {
                             try { this.bgm.volume += 0.05; } catch(e) {}
                         }
-                        
                         safetyCounter--;
-                        
                         if (this.bgm.volume >= 0.5 || safetyCounter <= 0) {
                             try { if(this.bgm.volume < 0.5) this.bgm.volume = 0.5; } catch(e) {}
                             clearInterval(this.fadeInterval);
@@ -958,14 +879,14 @@
                 }
             },
 
-            playTake: function() { // New method
+            playTake: function() {
                 if (!this.isMuted && this.sfxTake) {
                     this.sfxTake.currentTime = 0;
                     this.sfxTake.play().catch(()=>{});
                 }
             },
 
-            playMoney: function() { // New method
+            playMoney: function() {
                 if (!this.isMuted && this.sfxMoney) {
                     this.sfxMoney.currentTime = 0;
                     this.sfxMoney.play().catch(()=>{});
@@ -983,71 +904,31 @@
             }
         };
 
-        // ★ [重要] 鎖定瀏覽器縮放手勢 JS
+        // ★ 全域變數/函式定義區 (確保 onclick 能讀到)
         
-        // 1. 禁止圖片拖曳
-        document.querySelectorAll('img').forEach(img => {
-            img.addEventListener('dragstart', e => e.preventDefault());
-        });
-
-        // 2. 禁止 iOS Safari 的雙指縮放 (Gesture)
-        document.addEventListener('gesturestart', function(e) {
-            e.preventDefault();
-        });
-
-        // 3. 禁止雙擊放大 (Double Tap Zoom)
-        let lastTouchEnd = 0;
-        document.addEventListener('touchend', function(event) {
-            const now = (new Date()).getTime();
-            if (now - lastTouchEnd <= 300) {
-                event.preventDefault();
-            }
-            lastTouchEnd = now;
-        }, false);
-
-        // ★ 修改：綁定所有按鈕的點擊音效 (改為 pointerdown 加速反應)
-        document.addEventListener('pointerdown', (e) => {
-            // 只要是按鈕或可點擊元素
-            if (e.target.closest('.clickable-btn, .nav-item, .w-btn, .close-gold-btn, .game-card, .r-tab-btn, .w-option, .opt-item, .mail-item, .send-btn, .compose-btn, .mail-delete-btn')) {
-                LobbyAudio.playClick();
-            }
-        });
-
-        // 啟動 Audio
-        LobbyAudio.init();
-
-
         function initUser() {
-            const authModal = document.getElementById('auth-modal');
-            
-            // 優先檢查正式登入
             if (myUserId) {
                 db.ref('players/' + myUserId).once('value', (snapshot) => {
                     const data = snapshot.val();
                     if (data && data.password) {
                         currentUser = data;
-                        updateUserUI();
+                        updateUserUI(); 
                         startTickerListener(); 
                         listenUserData(); 
                     } else {
-                        // 舊資料無效，顯示登入框
                         localStorage.removeItem('casino_firebase_uid');
                         showAuthModalWithDelay();
                     }
                 });
             } 
-            // 其次檢查是否為訪客
             else if (guestSessionId) {
                 db.ref('players/' + guestSessionId).once('value', (snapshot) => {
                     const data = snapshot.val();
                     if(data) {
                         myUserId = guestSessionId;
                         currentUser = data;
-                        
-                        // ★ [重要] 訪客斷線自動刪除機制 (重新綁定)
                         db.ref('players/' + guestSessionId).onDisconnect().remove();
-
-                        updateUserUI();
+                        updateUserUI(); 
                         startTickerListener();
                         listenUserData();
                     } else {
@@ -1057,16 +938,13 @@
                 });
             }
             else {
-                // 完全沒登入
                 showAuthModalWithDelay();
             }
         }
 
         function showAuthModalWithDelay() {
             const authModal = document.getElementById('auth-modal');
-            setTimeout(() => {
-                authModal.classList.add('active');
-            }, 800); 
+            setTimeout(() => { authModal.classList.add('active'); }, 800); 
         }
 
         window.doLogin = function() {
@@ -1099,25 +977,16 @@
             });
         }
 
-        // ★ [修正] 訪客登入 (加入自動刪除機制)
         window.doGuestLogin = function() {
             const guestId = 'guest_' + Date.now();
-            const guestUser = {
-                name: "Guest",
-                balance: 10000,
-                vip: 0,
-                isGuest: true
-            };
+            const guestUser = { name: "Guest", balance: 10000, vip: 0, isGuest: true };
             
             db.ref('players/' + guestId).set(guestUser, (error) => {
                 if(!error) {
                     sessionStorage.setItem('casino_guest_id', guestId);
                     myUserId = guestId;
                     currentUser = guestUser;
-                    
-                    // ★ 設定斷線自動刪除
                     db.ref('players/' + guestId).onDisconnect().remove();
-
                     document.getElementById('auth-modal').classList.remove('active');
                     updateUserUI();
                     startTickerListener();
@@ -1134,8 +1003,7 @@
 
             db.ref('players').orderByChild('name').equalTo(name).once('value', (snapshot) => {
                 if (snapshot.exists()) {
-                    alert("這個暱稱已經有人使用了，請換一個！");
-                    return;
+                    alert("這個暱稱已經有人使用了，請換一個！"); return;
                 }
                 const newId = 'user_' + Date.now();
                 const newUser = {
@@ -1147,7 +1015,6 @@
                     lastLoginDate: 0, 
                     loginStreak: 0
                 };
-
                 db.ref('players/' + newId).set(newUser, (error) => {
                     if (error) {
                         alert("註冊失敗：" + error.message);
@@ -1167,31 +1034,22 @@
         }
 
         window.claimDaily = function(element, amount) { 
-            if(currentUser.isGuest) {
-                alert("訪客無法使用獎勵功能，請註冊正式帳號！");
-                return;
-            }
+            if(currentUser.isGuest) { alert("訪客無法使用獎勵功能"); return; }
             if(element.classList.contains('claimed')) return; 
-            if(element.classList.contains('normal')) return; // 鎖定狀態不可點
+            if(element.classList.contains('normal')) return; 
 
             const today = new Date().setHours(0,0,0,0);
             const lastDate = currentUser.lastLoginDate || 0;
             let streak = currentUser.loginStreak || 0;
             
-            if (lastDate === today) {
-                alert("今天已經領過囉！明天再來吧！");
-                return;
-            }
+            if (lastDate === today) { alert("今天已經領過囉！"); return; }
 
             const oneDay = 86400000;
-            if (today - lastDate > oneDay) {
-                streak = 0; 
-            }
+            if (today - lastDate > oneDay) { streak = 0; }
 
             streak++; 
-
             let bonus = 10000;
-            let msg = `🎉 簽到成功！獲得 ${bonus.toLocaleString()} 金幣！(第 ${streak} 天)`;
+            let msg = `🎉 簽到成功！獲得 ${bonus.toLocaleString()} 金幣！`;
 
             if (streak >= 7) {
                 bonus = 100000;
@@ -1210,21 +1068,20 @@
             });
         }
 
-        // ★ [修正] 渲染獎勵格子狀態
         function renderRewards() {
             const container = document.getElementById('daily-grid-container');
             if(!container || !currentUser) return;
-            
             container.innerHTML = ''; 
-
-            const streak = currentUser.loginStreak || 0;
+            let streak = currentUser.loginStreak || 0;
             const lastDate = currentUser.lastLoginDate || 0;
             const today = new Date().setHours(0,0,0,0);
             const claimedToday = (lastDate === today);
 
+            const oneDay = 86400000;
+            if (today - lastDate > oneDay && lastDate !== 0) { streak = 0; }
+
             for(let i=1; i<=7; i++) {
                 let stateClass = 'normal'; 
-                
                 if (claimedToday) {
                     if (i <= streak) stateClass = 'claimed';
                     else stateClass = 'normal';
@@ -1233,8 +1090,6 @@
                     else if (i === streak + 1) stateClass = 'active';
                     else stateClass = 'normal';
                 }
-
-                // 處理剛領完第7天重置的情況
                 if (streak === 0 && claimedToday) stateClass = 'normal'; 
 
                 let valText = (i === 7) ? '100,000' : '10,000';
@@ -1244,94 +1099,59 @@
 
                 let div = document.createElement('div');
                 div.className = `day-box ${extraClass} ${stateClass}`;
-                div.innerHTML = `
-                    <span class="day-num">${title}</span>
-                    ${imgHtml}
-                    <span class="day-val">${valText}</span>
-                `;
+                div.innerHTML = `<span class="day-num">${title}</span>${imgHtml}<span class="day-val">${valText}</span>`;
                 
                 if(stateClass === 'active') {
                     div.onclick = function() { claimDaily(this, 0); };
                 }
-
                 container.appendChild(div);
             }
         }
 
-        // --- ★ 信箱相關新功能邏輯 ---
-
-        // 1. 初始化監聽信箱
         function initMailboxListener() {
             if(!myUserId) return;
-            const mailRef = db.ref('players/' + myUserId + '/mailbox');
-            
-            mailRef.on('value', (snapshot) => {
+            db.ref('players/' + myUserId + '/mailbox').on('value', (snapshot) => {
                 const mails = [];
-                snapshot.forEach(child => {
-                    mails.push({ id: child.key, ...child.val() });
-                });
-                
-                // 合併系統預設信件 (如果未被刪除)
+                snapshot.forEach(child => { mails.push({ id: child.key, ...child.val() }); });
                 const systemMails = getSystemMails();
                 const allMails = [...systemMails, ...mails];
-                
-                // 排序：新的在上面
                 allMails.sort((a, b) => b.date - a.date);
-                
-                currentMailsCache = allMails; // Update cache
-                
+                currentMailsCache = allMails; 
                 renderMailList(allMails);
             });
         }
 
-        // 2. 獲取系統信件 (模擬)
         function getSystemMails() {
-            // ★ 修改：從 currentUser.deleted_sys_mails 檢查刪除狀態
             const deletedMap = currentUser ? (currentUser.deleted_sys_mails || {}) : {};
-            
             const sysMails = [
                 { id: 'sys_001', title: '維護補償獎勵', content: '感謝您的耐心等待，補償 500 金幣', reward: 500, date: 1735538400000, type: 'system', isRead: false },
                 { id: 'sys_002', title: '火龍祕寶 - 新機上線!', content: '全新機台火熱上線，登入即送 1000 金幣', reward: 1000, date: 1735452000000, type: 'system', isRead: false }
             ];
-            
             return sysMails.filter(m => !deletedMap[m.id]);
         }
 
-        // 3. 渲染信件列表
         function renderMailList(mails) {
             const container = document.getElementById('mail-list-container');
             container.innerHTML = '';
-
             if (mails.length === 0) {
                 container.innerHTML = '<div style="text-align:center; color:#666; margin-top:20px;">暫無信件</div>';
                 updateMailTabCount(0);
                 return;
             }
-
             let unreadCount = 0;
-
             mails.forEach(mail => {
                 let isRead = mail.isRead;
-                
-                // ★ 修改：優先檢查 Firebase 的 claimed_sys_mails
                 if(mail.type === 'system') {
-                    if (currentUser && currentUser.claimed_sys_mails && currentUser.claimed_sys_mails[mail.id]) {
-                        isRead = true;
-                    }
+                    if (currentUser && currentUser.claimed_sys_mails && currentUser.claimed_sys_mails[mail.id]) isRead = true;
                 }
-
                 if (!isRead) unreadCount++;
 
                 const div = document.createElement('div');
                 div.className = `mail-item ${isRead ? 'read' : 'unread'}`;
-                
-                // Icon Logic
                 let icon = '✉️';
                 if (mail.type === 'gift') icon = '💰';
                 else if (mail.type === 'system') icon = mail.reward ? '🎁' : '🔥';
 
-                // ★ 修改：將複雜物件轉為 JSON 字串，放入 data 屬性，避免 onclick 字串脫逸錯誤
-                // 但更簡單的方法是只傳 ID，然後在 openMail 裡去 cache 找
                 div.innerHTML = `
                     <div class="mail-content-wrapper" onclick="openMail('${mail.id}')">
                         <div class="mail-icon">${icon}</div>
@@ -1345,93 +1165,60 @@
                 `;
                 container.appendChild(div);
             });
-
             updateMailTabCount(unreadCount);
         }
 
-        // 4. 打開信件 (標記已讀 + 領獎)
         window.openMail = function(id) {
-            // Find mail object from cache
             let mail = currentMailsCache.find(m => m.id === id);
-            
-            // Fallback just in case
             if (!mail && currentUser.mailbox) {
                 mail = currentUser.mailbox[id];
                 if (mail) mail.id = id; 
             }
-
             if (!mail) return; 
 
             const { type, reward, title, content } = mail;
             let msg = `${title}\n\n${content}`;
             
             if (type === 'system') {
-                // ★ 修改：檢查 Firebase 狀態
                 const isClaimed = currentUser.claimed_sys_mails && currentUser.claimed_sys_mails[id];
-
                 if (!isClaimed) {
                     const updates = {};
                     updates['balance'] = (currentUser.balance || 0) + reward;
                     updates['claimed_sys_mails/' + id] = true;
-
                     db.ref('players/' + myUserId).update(updates).then(() => {
-                        if (reward > 0) {
-                            LobbyAudio.playTake();
-                            alert(msg + `\n\n(已領取附件: ${reward} 金幣)`);
-                        } else {
-                            alert(msg);
-                        }
-                        // 資料更新後，listenUserData 會觸發 updateUserUI，我們在那裡重繪列表
+                        if (reward > 0) { LobbyAudio.playTake(); alert(msg + `\n\n(已領取附件: ${reward} 金幣)`); } 
+                        else { alert(msg); }
                     });
-                } else {
-                    alert(msg + "\n\n(已讀/已領取)");
-                }
+                } else { alert(msg + "\n\n(已讀/已領取)"); }
             } else if (type === 'gift') {
-                // Check if already claimed based on local data snapshot
-                if (mail.claimed) {
-                    alert(msg + "\n\n(已領取)");
-                } else {
-                    // Claim it
+                if (mail.claimed) { alert(msg + "\n\n(已領取)"); } 
+                else {
                     const updates = {};
                     updates['balance'] = (currentUser.balance || 0) + reward;
                     updates['mailbox/' + id + '/claimed'] = true;
                     updates['mailbox/' + id + '/isRead'] = true;
-
                     db.ref('players/' + myUserId).update(updates).then(() => {
                         LobbyAudio.playTake();
                         alert(msg + `\n\n(已領取附件: ${reward} 金幣)`);
                     });
                 }
             } else {
-                // Normal user mail (mark read)
-                if(!mail.isRead) {
-                    db.ref('players/' + myUserId + '/mailbox/' + id).update({ isRead: true });
-                }
+                if(!mail.isRead) db.ref('players/' + myUserId + '/mailbox/' + id).update({ isRead: true });
                 alert(msg);
             }
         };
 
-        // 5. 刪除信件
         window.deleteMail = function(id, type) {
             if(!confirm("確定要刪除這封信嗎？")) return;
-
-            if (type === 'system') {
-                // ★ 修改：寫入 Firebase deleted_sys_mails
-                db.ref('players/' + myUserId + '/deleted_sys_mails/' + id).set(true);
-            } else {
-                db.ref('players/' + myUserId + '/mailbox/' + id).remove();
-            }
-        };
-
-        // 6. 更新標籤數字
-        function updateMailTabCount(count) {
-            const mailTabBtn = document.querySelectorAll('.r-tab-btn')[1]; 
-            if (mailTabBtn) {
-                mailTabBtn.innerText = count > 0 ? `信箱 (${count})` : "信箱";
-            }
+            if (type === 'system') db.ref('players/' + myUserId + '/deleted_sys_mails/' + id).set(true);
+            else db.ref('players/' + myUserId + '/mailbox/' + id).remove();
         }
 
-        // 7. 切換寫信介面
+        function updateMailTabCount(count) {
+            const mailTabBtn = document.querySelectorAll('.r-tab-btn')[1]; 
+            if (mailTabBtn) mailTabBtn.innerText = count > 0 ? `信箱 (${count})` : "信箱";
+        }
+
         window.toggleComposeView = function(show) {
             if(show) {
                 document.querySelector('#view-mail').classList.remove('active');
@@ -1442,20 +1229,16 @@
             }
         }
 
-        // 8. 發送玩家信件
         window.sendUserMail = function() {
             const toName = document.getElementById('compose-to').value.trim();
             const content = document.getElementById('compose-msg').value.trim();
-            
             if(!toName || !content) { alert("請填寫收件人和內容"); return; }
             if(toName === currentUser.name) { alert("不能寄給自己"); return; }
 
-            // 找人
             db.ref('players').orderByChild('name').equalTo(toName).once('value', (snapshot) => {
                 if (snapshot.exists()) {
                     let receiverId = null;
                     snapshot.forEach(child => { receiverId = child.key; });
-                    
                     if(receiverId) {
                         const newMail = {
                             title: `來自 ${currentUser.name} 的訊息`,
@@ -1465,7 +1248,6 @@
                             type: 'user',
                             sender: currentUser.name
                         };
-                        
                         db.ref('players/' + receiverId + '/mailbox').push(newMail).then(() => {
                             alert("信件已發送！");
                             toggleComposeView(false);
@@ -1473,10 +1255,111 @@
                             document.getElementById('compose-msg').value = '';
                         });
                     }
-                } else {
-                    alert("找不到該玩家");
-                }
+                } else { alert("找不到該玩家"); }
             });
+        }
+
+        window.sendGift = function() {
+            if(currentUser.isGuest) { alert("訪客無法使用送禮功能"); return; }
+            const receiverInput = document.querySelector('#view-gift .gift-input[type="text"]');
+            const amountSelect = document.querySelector('#view-gift .gift-input:not([type="text"])');
+            const receiverName = receiverInput.value.trim();
+            const amountStr = amountSelect.value.replace(/[^0-9]/g, '');
+            const amount = parseInt(amountStr);
+
+            if (!receiverName) { alert("請輸入對方 ID 或暱稱"); return; }
+            if (currentUser.balance < amount) { alert("您的餘額不足！"); return; }
+            if (receiverName === currentUser.name) { alert("不能送給自己啦！"); return; }
+
+            db.ref('players').orderByChild('name').equalTo(receiverName).once('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    let receiverId = null;
+                    snapshot.forEach(child => { receiverId = child.key; });
+                    if (receiverId) {
+                        db.ref('players/' + myUserId + '/balance').transaction((currentBalance) => {
+                            if (currentBalance >= amount) return currentBalance - amount;
+                            return currentBalance; 
+                        }, (error, committed, snapshot) => {
+                            if (error) { alert("交易失敗"); } 
+                            else if (!committed) { alert("餘額不足，交易取消"); } 
+                            else {
+                                const newMail = {
+                                    title: "💰 好友贈禮",
+                                    content: `玩家 ${currentUser.name} 贈送給您 ${amount.toLocaleString()} 金幣！\n請點擊領取。`,
+                                    reward: amount,
+                                    date: Date.now(),
+                                    isRead: false,
+                                    type: 'gift', 
+                                    sender: currentUser.name,
+                                    claimed: false
+                                };
+                                db.ref('players/' + receiverId + '/mailbox').push(newMail);
+                                LobbyAudio.playMoney(); 
+                                alert(`成功發送 ${amount.toLocaleString()} 金幣給 ${receiverName}！`);
+                                receiverInput.value = ''; 
+                            }
+                        });
+                    }
+                } else { alert("找不到這位玩家，請確認暱稱是否正確。"); }
+            });
+        }
+
+        window.handleAuthAction = function() {
+            if (currentUser && currentUser.isGuest) {
+                document.getElementById('auth-modal').classList.add('active');
+            } else { logout(); }
+        }
+
+        function logout() {
+            if(confirm("確定要登出嗎？")) {
+                if (currentUser && currentUser.isGuest) {
+                    db.ref('players/' + myUserId).remove().then(() => {
+                        localStorage.removeItem('casino_firebase_uid');
+                        sessionStorage.removeItem('casino_guest_id');
+                        location.reload();
+                    });
+                } else {
+                    localStorage.removeItem('casino_firebase_uid');
+                    const guestId = 'guest_' + Date.now();
+                    const guestUser = { name: "Guest", balance: 10000, vip: 0, isGuest: true };
+                    db.ref('players/' + guestId).set(guestUser).then(() => {
+                        sessionStorage.setItem('casino_guest_id', guestId);
+                        location.reload(); 
+                    });
+                }
+            }
+        }
+
+        window.optAction = function(type) {
+            document.getElementById('option-dropdown').classList.remove('active');
+            if (type === 'support') alert("正在為您連線線上客服...");
+            else if (type === 'history') alert("📊 投注紀錄功能開發中");
+            else if (type === 'lang') alert("Language switched.");
+            else if (type === 'version') alert("Casino Lobby\nv1.7.0 Stable");
+        }
+
+        window.switchRewardTab = function(tabName) {
+            const btns = document.querySelectorAll('.r-tab-btn');
+            btns.forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            document.querySelectorAll('.r-view').forEach(v => v.classList.remove('active'));
+            if(tabName === 'mail') {
+                document.getElementById('view-compose').classList.remove('active');
+                document.getElementById('view-mail').classList.add('active');
+            } else {
+                document.getElementById(`view-${tabName}`).classList.add('active');
+            }
+        }
+
+        window.selectRecharge = function(el, amount) {
+            document.querySelectorAll('.w-option').forEach(opt => opt.classList.remove('active'));
+            el.classList.add('active');
+        }
+
+        window.confirmRecharge = function() {
+            document.getElementById('wallet-modal').classList.remove('active');
+            alert("系統提示：正在連線至支付閘道... (模擬成功)");
+            updateUserBalance(500000); 
         }
 
         function listenUserData() {
@@ -1487,7 +1370,6 @@
                     currentUser = data;
                     updateUserUI();
                     
-                    // ★ 每次 user data 更新 (例如領取/刪除系統信)，重繪信箱列表
                     if(currentMailsCache.length > 0) {
                          const mailRef = db.ref('players/' + myUserId + '/mailbox');
                          mailRef.once('value', (snap) => {
@@ -1496,16 +1378,12 @@
                             const systemMails = getSystemMails();
                             const allMails = [...systemMails, ...mails];
                             allMails.sort((a, b) => b.date - a.date);
-                            currentMailsCache = allMails; // Update cache also here
+                            currentMailsCache = allMails; 
                             renderMailList(allMails);
                          });
                     }
-
-                } else {
-                    location.reload();
-                }
+                } else { location.reload(); }
             });
-            // ★ 啟動信箱監聽
             initMailboxListener();
         }
 
@@ -1522,6 +1400,17 @@
             });
         }
 
+        function showGhostTicker(msg) {
+            const ticker = document.getElementById('ghost-ticker');
+            const text = document.getElementById('ticker-text');
+            text.innerText = msg;
+            text.style.animation = 'none'; 
+            ticker.offsetHeight; 
+            ticker.classList.add('active');
+            setTimeout(() => { text.style.animation = 'scrollText 10s linear forwards'; }, 100);
+            setTimeout(() => { ticker.classList.remove('active'); }, 10000);
+        }
+
         function updateUserUI() {
             if(!currentUser) return;
             document.querySelector('.coin-number').innerText = currentUser.balance.toLocaleString('en-US', {minimumFractionDigits: 2});
@@ -1529,7 +1418,6 @@
             document.querySelector('.p-id').innerText = "ID: " + currentUser.name;
             document.querySelector('.w-balance').innerText = "當前餘額: " + currentUser.balance.toLocaleString('en-US', {minimumFractionDigits: 2});
             
-            // ★ [新增] 視覺區隔邏輯
             const avatarImg = document.querySelector('.avatar-img');
             const vipText = document.querySelector('.vip-text');
             const profileAvatar = document.querySelector('.p-avatar');
@@ -1571,222 +1459,194 @@
             });
         }
 
-        // ★ [新增] 送禮邏輯 (扣自己錢 -> 給對方錢)
-        window.sendGift = function() {
-            if(currentUser.isGuest) { alert("訪客無法使用送禮功能"); return; }
+        async function initDynamicGameList() {
+            const mainContainer = document.querySelector('.main-scroll-area');
+            const slotsContainer = document.querySelector('.slots-grid');
+            mainContainer.innerHTML = '';
+            slotsContainer.innerHTML = '';
 
-            // 1. 取得輸入資料
-            const receiverInput = document.querySelector('#view-gift .gift-input[type="text"]');
-            const amountSelect = document.querySelector('#view-gift .gift-input:not([type="text"])'); // 下拉選單
-            
-            const receiverName = receiverInput.value.trim();
-            // 從下拉選單字串 "1,000 金幣" 中提取數字
-            const amountStr = amountSelect.value.replace(/[^0-9]/g, '');
-            const amount = parseInt(amountStr);
+            let gameIndex = 1;
+            let keepChecking = true;
 
-            if (!receiverName) { alert("請輸入對方 ID 或暱稱"); return; }
-            if (currentUser.balance < amount) { alert("您的餘額不足！"); return; }
-            if (receiverName === currentUser.name) { alert("不能送給自己啦！"); return; }
+            while (keepChecking && gameIndex <= 99) {
+                const numStr = gameIndex.toString().padStart(3, '0');
+                const imgName = `game${numStr}.png`;
+                
+                try {
+                    await new Promise((resolve, reject) => {
+                        const img = new Image();
+                        img.onload = resolve;
+                        img.onerror = reject;
+                        img.src = imgName;
+                    });
 
-            // 2. 先去資料庫找這個人是否存在
-            db.ref('players').orderByChild('name').equalTo(receiverName).once('value', (snapshot) => {
-                if (snapshot.exists()) {
-                    // 找到對方了
-                    let receiverId = null;
-                    snapshot.forEach(child => { receiverId = child.key; });
+                    const card = document.createElement('div');
+                    card.className = 'game-card';
+                    if (gameIndex === 1) card.id = 'game-dragon'; 
+                    card.innerHTML = `<img src="${imgName}" class="game-img" alt="Game ${gameIndex}">`;
+                    
+                    if (gameIndex === 1) {
+                        card.onclick = function() {
+                            if (this.classList.contains('launching')) return;
+                            LobbyAudio.fadeOut();
+                            this.classList.add('launching');
+                            
+                            const overlay = document.getElementById('transition-overlay');
+                            const gameContainer = document.getElementById('game-container');
+                            const dragonUrl = "https://zendwucloud.github.io/Dragon-Treasure/"; 
 
-                    if (receiverId) {
-                        // 3. 執行轉帳
-                        // A. 扣自己的錢
-                        db.ref('players/' + myUserId + '/balance').transaction((currentBalance) => {
-                            if (currentBalance >= amount) return currentBalance - amount;
-                            return currentBalance; // 如果交易瞬間錢不夠了，取消扣款
-                        }, (error, committed, snapshot) => {
-                            if (error) {
-                                alert("交易失敗");
-                            } else if (!committed) {
-                                alert("餘額不足，交易取消");
-                            } else {
-                                // B. 發送禮物信件 (不直接加餘額)
-                                const newMail = {
-                                    title: "💰 好友贈禮",
-                                    content: `玩家 ${currentUser.name} 贈送給您 ${amount.toLocaleString()} 金幣！\n請點擊領取。`,
-                                    reward: amount,
-                                    date: Date.now(),
-                                    isRead: false,
-                                    type: 'gift', // New type
-                                    sender: currentUser.name,
-                                    claimed: false
-                                };
-                                db.ref('players/' + receiverId + '/mailbox').push(newMail);
-
-                                LobbyAudio.playMoney(); // Play sound
-                                alert(`成功發送 ${amount.toLocaleString()} 金幣給 ${receiverName}！`);
-                                receiverInput.value = ''; // 清空輸入框
-                            }
-                        });
+                            setTimeout(() => {
+                                overlay.classList.add('active'); 
+                                setTimeout(() => {
+                                    let iframe = document.createElement('iframe');
+                                    iframe.id = "game-frame";
+                                    iframe.src = dragonUrl;
+                                    iframe.allow = "autoplay; fullscreen";
+                                    const oldFrame = document.getElementById('game-frame');
+                                    if(oldFrame) oldFrame.remove();
+                                    gameContainer.appendChild(iframe);
+                                    gameContainer.style.display = 'block';
+                                    
+                                    iframe.onload = () => { 
+                                        if(currentUser) {
+                                            iframe.contentWindow.postMessage({
+                                                type: 'initBalance', 
+                                                value: currentUser.balance
+                                            }, '*');
+                                        }
+                                        setTimeout(() => { overlay.classList.remove('active'); }, 300); 
+                                    };
+                                    setTimeout(() => { if(overlay.classList.contains('active')) overlay.classList.remove('active'); }, 1500);
+                                }, 500); 
+                            }, 400);
+                        };
                     }
-                } else {
-                    alert("找不到這位玩家，請確認暱稱是否正確。");
-                }
-            });
-        }
+                    mainContainer.appendChild(card);
 
-        function handleAuthAction() {
-            if (currentUser && currentUser.isGuest) {
-                document.getElementById('auth-modal').classList.add('active');
-            } else {
-                logout();
-            }
-        }
+                    const slot = document.createElement('div');
+                    slot.className = 'slot-icon';
+                    slot.innerHTML = `<img src="${imgName}" class="slot-thumb">`;
+                    slotsContainer.appendChild(slot);
 
-        function logout() {
-            if(confirm("確定要登出嗎？")) {
-                if (currentUser && currentUser.isGuest) {
-                    db.ref('players/' + myUserId).remove().then(() => {
-                        localStorage.removeItem('casino_firebase_uid');
-                        sessionStorage.removeItem('casino_guest_id');
-                        location.reload();
-                    });
-                } else {
-                    localStorage.removeItem('casino_firebase_uid');
-                    // 轉為訪客
-                    const guestId = 'guest_' + Date.now();
-                    const guestUser = { name: "Guest", balance: 10000, vip: 0, isGuest: true };
-                    db.ref('players/' + guestId).set(guestUser).then(() => {
-                        sessionStorage.setItem('casino_guest_id', guestId);
-                        location.reload(); 
-                    });
+                    gameIndex++;
+                } catch (e) {
+                    keepChecking = false;
                 }
             }
+            const spacer = document.createElement('div');
+            spacer.style.height = '5vh';
+            mainContainer.appendChild(spacer);
         }
 
-        const optionBtn = document.querySelector('.menu-btn');
-        const optionDropdown = document.getElementById('option-dropdown');
-        if (optionBtn) {
-            optionBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                optionDropdown.classList.toggle('active');
-            });
-        }
-        window.optAction = function(type) {
-            optionDropdown.classList.remove('active');
-            if (type === 'support') alert("正在為您連線線上客服...");
-            else if (type === 'history') alert("📊 投注紀錄功能開發中");
-            else if (type === 'lang') alert("Language switched.");
-            else if (type === 'version') alert("Casino Lobby\nv1.5.5 Smart Lock");
-        }
-        document.addEventListener('click', (e) => {
-            if (optionDropdown.classList.contains('active') && !optionDropdown.contains(e.target) && e.target !== optionBtn) {
-                optionDropdown.classList.remove('active');
-            }
-        });
+        // --- ★ Main DOM Ready ★ ---
+        document.addEventListener('DOMContentLoaded', () => {
+            LobbyAudio.init();  // ★ 請補上這一行，音效系統才會啟動
+            initUser(); 
+            initDynamicGameList(); 
 
-        const navItems = document.querySelectorAll('.nav-item');
-        const mainScroll = document.querySelector('.main-scroll-area');
-        const slotsPanel = document.getElementById('slots-panel');
-        const rewardsPanel = document.getElementById('rewards-panel');
-        const profilePanel = document.getElementById('profile-panel');
-        const rankingsPanel = document.getElementById('rankings-panel'); 
-        const closeButtons = document.querySelectorAll('.close-gold-btn');
-        const navHome = document.getElementById('nav-home');
-        const walletModal = document.getElementById('wallet-modal');
-        const closeWalletBtn = document.getElementById('close-wallet-btn');
-        const plusBtn = document.querySelector('.plus-btn');
-
-        navItems.forEach(item => {
-            item.addEventListener('click', () => {
-                navItems.forEach(i => i.classList.remove('active'));
-                item.classList.add('active');
-                if (item.id === 'nav-slots') openPanel(slotsPanel);
-                else if (item.id === 'nav-rewards') openPanel(rewardsPanel); 
-                else if (item.id === 'nav-profile') openPanel(profilePanel);
-                else if (item.id === 'nav-rankings') openRankingsPanel();
-                else closeAllPanels();
-            });
-        });
-
-        function openPanel(targetPanel) {
-            mainScroll.classList.add('hidden');
-            [slotsPanel, rewardsPanel, profilePanel, rankingsPanel].forEach(p => {
-                if(p !== targetPanel) p.classList.remove('active');
-            });
-            setTimeout(() => { targetPanel.classList.add('active'); }, 200);
+            // Bind Navigation
+            const navItems = document.querySelectorAll('.nav-item');
+            const mainScroll = document.querySelector('.main-scroll-area');
+            const slotsPanel = document.getElementById('slots-panel');
+            const rewardsPanel = document.getElementById('rewards-panel');
+            const profilePanel = document.getElementById('profile-panel');
+            const rankingsPanel = document.getElementById('rankings-panel'); 
+            const closeButtons = document.querySelectorAll('.close-gold-btn');
             
-            if(targetPanel === rewardsPanel) {
-                renderRewards();
-            }
-        }
-
-        function closeAllPanels() {
-            [slotsPanel, rewardsPanel, profilePanel, rankingsPanel].forEach(p => p.classList.remove('active'));
-            setTimeout(() => { mainScroll.classList.remove('hidden'); }, 200);
-            navItems.forEach(i => i.classList.remove('active'));
-            navHome.classList.add('active');
-        }
-
-        closeButtons.forEach(btn => btn.addEventListener('click', closeAllPanels));
-
-        function openRankingsPanel() {
-            openPanel(rankingsPanel);
-            const listDiv = document.getElementById('rank-list-content');
-            listDiv.innerHTML = '<div style="text-align:center; color:#888;">載入中...</div>';
-            db.ref('players').orderByChild('balance').limitToLast(10).once('value', (snapshot) => {
-                listDiv.innerHTML = '';
-                const players = [];
-                snapshot.forEach(child => { players.push(child.val()); });
-                players.reverse();
-                players.forEach((p, index) => {
-                    const item = document.createElement('div');
-                    item.className = 'rank-item';
-                    item.innerHTML = `<div class="rank-num">${index + 1}</div><img src="player.png" class="rank-avatar"><div class="rank-info"><div class="rank-name">${p.name}</div><div class="rank-vip">VIP.${p.vip || 0}</div></div><div class="rank-val">${(p.balance || 0).toLocaleString()}</div>`;
-                    listDiv.appendChild(item);
+            navItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    navItems.forEach(i => i.classList.remove('active'));
+                    item.classList.add('active');
+                    if (item.id === 'nav-slots') openPanel(slotsPanel);
+                    else if (item.id === 'nav-rewards') openPanel(rewardsPanel); 
+                    else if (item.id === 'nav-profile') openPanel(profilePanel);
+                    else if (item.id === 'nav-rankings') openRankingsPanel();
+                    else closeAllPanels();
                 });
             });
-        }
 
-        function showGhostTicker(msg) {
-            const ticker = document.getElementById('ghost-ticker');
-            const text = document.getElementById('ticker-text');
-            text.innerText = msg;
-            text.style.animation = 'none'; 
-            ticker.offsetHeight; 
-            ticker.classList.add('active');
-            setTimeout(() => { text.style.animation = 'scrollText 10s linear forwards'; }, 100);
-            setTimeout(() => { ticker.classList.remove('active'); }, 10000);
-        }
-
-        window.switchRewardTab = function(tabName) {
-            const btns = document.querySelectorAll('.r-tab-btn');
-            btns.forEach(b => b.classList.remove('active'));
-            event.target.classList.add('active');
-            document.querySelectorAll('.r-view').forEach(v => v.classList.remove('active'));
-            if(tabName === 'mail') {
-                document.getElementById('view-compose').classList.remove('active');
-                document.getElementById('view-mail').classList.add('active');
-            } else {
-                document.getElementById(`view-${tabName}`).classList.add('active');
+            function openPanel(targetPanel) {
+                mainScroll.classList.add('hidden');
+                [slotsPanel, rewardsPanel, profilePanel, rankingsPanel].forEach(p => {
+                    if(p !== targetPanel) p.classList.remove('active');
+                });
+                setTimeout(() => { targetPanel.classList.add('active'); }, 200);
+                if(targetPanel === rewardsPanel) renderRewards();
             }
-        }
 
-        if (plusBtn) plusBtn.addEventListener('click', () => {
-            if(currentUser.isGuest) { alert("訪客無法儲值"); return; }
-            walletModal.classList.add('active');
+            function closeAllPanels() {
+                [slotsPanel, rewardsPanel, profilePanel, rankingsPanel].forEach(p => p.classList.remove('active'));
+                setTimeout(() => { mainScroll.classList.remove('hidden'); }, 200);
+                navItems.forEach(i => i.classList.remove('active'));
+                document.getElementById('nav-home').classList.add('active');
+            }
+
+            closeButtons.forEach(btn => btn.addEventListener('click', closeAllPanels));
+
+            // Bind Option Button
+            const optionBtn = document.querySelector('.menu-btn');
+            const optionDropdown = document.getElementById('option-dropdown');
+            if (optionBtn) {
+                optionBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    optionDropdown.classList.toggle('active');
+                });
+            }
+            document.addEventListener('click', (e) => {
+                if (optionDropdown.classList.contains('active') && !optionDropdown.contains(e.target) && e.target !== optionBtn) {
+                    optionDropdown.classList.remove('active');
+                }
+            });
+
+            // Bind Wallet
+            const walletModal = document.getElementById('wallet-modal');
+            const closeWalletBtn = document.getElementById('close-wallet-btn');
+            const plusBtn = document.querySelector('.plus-btn');
+
+            if (plusBtn) plusBtn.addEventListener('click', () => {
+                if(currentUser.isGuest) { alert("訪客無法儲值"); return; }
+                walletModal.classList.add('active');
+            });
+            if (closeWalletBtn) closeWalletBtn.addEventListener('click', () => walletModal.classList.remove('active'));
+
+            function openRankingsPanel() {
+                openPanel(rankingsPanel);
+                const listDiv = document.getElementById('rank-list-content');
+                listDiv.innerHTML = '<div style="text-align:center; color:#888;">載入中...</div>';
+                db.ref('players').orderByChild('balance').limitToLast(10).once('value', (snapshot) => {
+                    listDiv.innerHTML = '';
+                    const players = [];
+                    snapshot.forEach(child => { players.push(child.val()); });
+                    players.reverse();
+                    players.forEach((p, index) => {
+                        const item = document.createElement('div');
+                        item.className = 'rank-item';
+                        item.innerHTML = `<div class="rank-num">${index + 1}</div><img src="player.png" class="rank-avatar"><div class="rank-info"><div class="rank-name">${p.name}</div><div class="rank-vip">VIP.${p.vip || 0}</div></div><div class="rank-val">${(p.balance || 0).toLocaleString()}</div>`;
+                        listDiv.appendChild(item);
+                    });
+                });
+            }
         });
-        if (closeWalletBtn) closeWalletBtn.addEventListener('click', () => walletModal.classList.remove('active'));
 
-        window.selectRecharge = function(el, amount) {
-            document.querySelectorAll('.w-option').forEach(opt => opt.classList.remove('active'));
-            el.classList.add('active');
-        }
-        window.confirmRecharge = function() {
-            walletModal.classList.remove('active');
-            alert("系統提示：正在連線至支付閘道... (模擬成功)");
-            updateUserBalance(500000); 
-        }
+        // 鎖定縮放
+        document.querySelectorAll('img').forEach(img => img.addEventListener('dragstart', e => e.preventDefault()));
+        document.addEventListener('gesturestart', e => e.preventDefault());
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function(event) {
+            const now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) event.preventDefault();
+            lastTouchEnd = now;
+        }, false);
 
+        document.addEventListener('pointerdown', (e) => {
+            if (e.target.closest('.clickable-btn, .nav-item, .w-btn, .close-gold-btn, .game-card, .r-tab-btn, .w-option, .opt-item, .mail-item, .send-btn, .compose-btn, .mail-delete-btn')) {
+                LobbyAudio.playClick();
+            }
+        });
+
+        // ★ Home 鍵監聽 (全域)
         window.addEventListener('message', (event) => {
-            if (event.data === 'closeGame') {
+            if (typeof event.data === 'string' && event.data === 'closeGame') {
                 const overlay = document.getElementById('transition-overlay');
                 const gameContainer = document.getElementById('game-container');
                 const dragonCard = document.getElementById('game-dragon');
@@ -1806,56 +1666,18 @@
                     if(iframe) iframe.remove(); 
                     if(dragonCard) dragonCard.classList.remove('launching');
                     overlay.classList.remove('active'); 
-                    LobbyAudio.playBGM(); // ★ 淡入
-                    if(myUserId) db.ref('players/' + myUserId).once('value');
+                    LobbyAudio.playBGM(); 
+                    if(myUserId) {
+                        db.ref('players/' + myUserId).once('value', (snapshot) => {
+                            const data = snapshot.val();
+                            if(data) { currentUser = data; updateUserUI(); }
+                        });
+                    }
                 }, 500);
             }
-            if (event.data.type === 'updateBalance') {
-                if(!currentUser.isGuest) {
-                    db.ref('players/' + myUserId).update({ balance: event.data.value });
-                } else {
-                    db.ref('players/' + myUserId).update({ balance: event.data.value });
-                }
-            }
-        });
-
-        document.addEventListener('DOMContentLoaded', () => {
-            initUser(); 
-            const dragonCard = document.getElementById('game-dragon');
-            const overlay = document.getElementById('transition-overlay');
-            const gameContainer = document.getElementById('game-container');
-            const dragonUrl = "https://zendwucloud.github.io/Dragon-Treasure/"; 
-
-            if (dragonCard) {
-                dragonCard.addEventListener('click', function() {
-                    if (this.classList.contains('launching')) return;
-                    LobbyAudio.fadeOut(); // ★ 淡出
-                    this.classList.add('launching');
-                    setTimeout(() => {
-                        overlay.classList.add('active'); 
-                        setTimeout(() => {
-                            let iframe = document.createElement('iframe');
-                            iframe.id = "game-frame";
-                            iframe.src = dragonUrl;
-                            iframe.allow = "autoplay; fullscreen";
-                            const oldFrame = document.getElementById('game-frame');
-                            if(oldFrame) oldFrame.remove();
-                            gameContainer.appendChild(iframe);
-                            gameContainer.style.display = 'block';
-                            
-                            iframe.onload = () => { 
-                                if(currentUser) {
-                                    iframe.contentWindow.postMessage({
-                                        type: 'initBalance', 
-                                        value: currentUser.balance
-                                    }, '*');
-                                }
-                                setTimeout(() => { overlay.classList.remove('active'); }, 300); 
-                            };
-                            setTimeout(() => { if(overlay.classList.contains('active')) overlay.classList.remove('active'); }, 1500);
-                        }, 500); 
-                    }, 400);
-                });
+            if (typeof event.data === 'object' && event.data !== null && event.data.type === 'updateBalance') {
+                if(!currentUser.isGuest) db.ref('players/' + myUserId).update({ balance: event.data.value });
+                else db.ref('players/' + myUserId).update({ balance: event.data.value });
             }
         });
 
