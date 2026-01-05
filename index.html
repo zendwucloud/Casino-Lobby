@@ -906,41 +906,17 @@
 
         // ★ 全域變數/函式定義區 (確保 onclick 能讀到)
         
+        // ★ 全域變數/函式定義區 (確保 onclick 能讀到)
+        
         function initUser() {
-            if (myUserId) {
-                db.ref('players/' + myUserId).once('value', (snapshot) => {
-                    const data = snapshot.val();
-                    if (data && data.password) {
-                        currentUser = data;
-                        updateUserUI(); 
-                        startTickerListener(); 
-                        listenUserData(); 
-                    } else {
-                        localStorage.removeItem('casino_firebase_uid');
-                        showAuthModalWithDelay();
-                    }
-                });
-            } 
-            else if (guestSessionId) {
-                db.ref('players/' + guestSessionId).once('value', (snapshot) => {
-                    const data = snapshot.val();
-                    if(data) {
-                        myUserId = guestSessionId;
-                        currentUser = data;
-                        db.ref('players/' + guestSessionId).onDisconnect().remove();
-                        updateUserUI(); 
-                        startTickerListener();
-                        listenUserData();
-                    } else {
-                        sessionStorage.removeItem('casino_guest_id');
-                        showAuthModalWithDelay();
-                    }
-                });
-            }
-            else {
-                showAuthModalWithDelay();
-            }
-        }
+            // 1. 強制清除舊的登入紀錄 (確保每次都像新的一樣)
+            localStorage.removeItem('casino_firebase_uid');
+            sessionStorage.removeItem('casino_guest_id');
+
+            // 2. 直接呼叫登入視窗
+            showAuthModalWithDelay();
+        } 
+        // ↑↑↑ 原本這裡下面多了一個 "}"，請務必確認這裡只有一個結束括號
 
         function showAuthModalWithDelay() {
             const authModal = document.getElementById('auth-modal');
