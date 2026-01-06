@@ -653,7 +653,7 @@
                     <div class="setting-item">
                         <span class="setting-label">遊戲音效</span>
                         <label class="toggle-switch-small">
-                            <input type="checkbox" checked onclick="alert('音效設定暫時無法連動至遊戲內')">
+                            <input type="checkbox" id="sfx-toggle" checked>
                             <span class="slider-small"></span>
                         </label>
                     </div>
@@ -1539,6 +1539,15 @@
                                                 type: 'initBalance', 
                                                 value: currentUser.balance
                                             }, '*');
+
+                                            // ★ 新增：一進遊戲就馬上同步目前的音效設定
+                                            const bgmOn = document.getElementById('bgm-toggle').checked;
+                                            const sfxOn = document.getElementById('sfx-toggle').checked;
+                                            iframe.contentWindow.postMessage({
+                                                type: 'updateSettings',
+                                                music: bgmOn,
+                                                sfx: sfxOn
+                                            }, '*');
                                         }
                                         setTimeout(() => { overlay.classList.remove('active'); }, 300); 
                                     };
@@ -1691,6 +1700,48 @@
                     });
                 });
             }
+
+            // ★ 新增：音效設定連動邏輯
+            const bgmToggle = document.getElementById('bgm-toggle');
+            const sfxToggle = document.getElementById('sfx-toggle');
+
+            // 1. 定義傳送設定給遊戲的函式
+            function syncSettingsToGame() {
+                const isBgmOn = bgmToggle.checked;
+                const isSfxOn = sfxToggle.checked;
+                
+                // 儲存設定到瀏覽器
+                localStorage.setItem('casino_bgm_on', isBgmOn);
+                localStorage.setItem('casino_sfx_on', isSfxOn);
+
+                // 如果遊戲視窗存在，就發送訊號
+                const gameFrame = document.getElementById('game-frame');
+                if (gameFrame && gameFrame.contentWindow) {
+                    gameFrame.contentWindow.postMessage({
+                        type: 'updateSettings',
+                        music: isBgmOn,
+                        sfx: isSfxOn
+                    }, '*');
+                }
+            }
+
+            // 2. 讀取舊設定
+            if (localStorage.getItem('casino_sfx_on') === 'false') {
+                sfxToggle.checked = false;
+            }
+
+            // 3. 綁定開關事件
+            bgmToggle.addEventListener('change', () => {
+                LobbyAudio.toggleMute(!bgmToggle.checked); 
+                syncSettingsToGame(); // 同步給遊戲
+            });
+            
+            sfxToggle.addEventListener('change', () => {
+                // 大廳目前沒有太多音效，主要控制按鈕聲
+                if(sfxToggle.checked) LobbyAudio.sfxClick.volume = 1.0;
+                else LobbyAudio.sfxClick.volume = 0;
+                syncSettingsToGame(); // 同步給遊戲
+            });
         });
 
         // 鎖定縮放
