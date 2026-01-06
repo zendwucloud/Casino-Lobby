@@ -297,7 +297,16 @@
         .day-box.claimed { opacity: 0.5; }
         .day-box.claimed .day-coin-img, .day-box.claimed .day-val, .day-box.claimed .day-num { filter: grayscale(1); }
         .day-box.claimed::after { content: "✔"; position: absolute; font-size: 3vh; color: #00ff00; text-shadow: 0 0 5px #000; font-weight: 900; filter: none; }
-        .day-box.active { border-color: #ffd700; background: rgba(255, 215, 0, 0.1); cursor: pointer; animation: pulseBox 1.5s infinite; opacity: 1; filter: grayscale(0); }
+        .day-box.active { 
+            border-color: #ffd700; 
+            background: rgba(255, 215, 0, 0.1); 
+            cursor: pointer; 
+            animation: pulseBox 1.5s infinite; 
+            opacity: 1; 
+            filter: grayscale(0);
+            pointer-events: auto !important; /* ★ 強制開啟點擊 */
+            z-index: 10; /* ★ 確保浮在最上層 */
+        }
         .day-box.active .day-val { color: #ffd700; text-shadow: 0 0 5px orange; }
         .day-box.normal { opacity: 0.4; filter: grayscale(0.8); pointer-events: none; }
 
@@ -792,7 +801,8 @@
                 if(this.sfxTake) this.sfxTake.volume = 1.0;   
                 if(this.sfxMoney) this.sfxMoney.volume = 1.0; 
 
-                document.body.addEventListener('click', () => {
+                // 改成 pointerdown 提早觸發
+                document.body.addEventListener('pointerdown', () => { 
                     if (!this.hasInteracted) {
                         this.hasInteracted = true;
                         this.playBGM();
@@ -904,19 +914,16 @@
             }
         };
 
-        // ★ 全域變數/函式定義區 (確保 onclick 能讀到)
-        
-        // ★ 全域變數/函式定義區 (確保 onclick 能讀到)
+        // ★ 全域變數/函式定義區
         
         function initUser() {
-            // 1. 強制清除舊的登入紀錄 (確保每次都像新的一樣)
+            // 1. 強制清除舊的登入紀錄
             localStorage.removeItem('casino_firebase_uid');
             sessionStorage.removeItem('casino_guest_id');
 
             // 2. 直接呼叫登入視窗
             showAuthModalWithDelay();
         } 
-        // ↑↑↑ 原本這裡下面多了一個 "}"，請務必確認這裡只有一個結束括號
 
         function showAuthModalWithDelay() {
             const authModal = document.getElementById('auth-modal');
@@ -987,6 +994,7 @@
                     password: pass,
                     balance: 100000, 
                     vip: 1,
+                    exp: 0,  // 初始經驗值
                     joinedAt: Date.now(),
                     lastLoginDate: 0, 
                     loginStreak: 0
@@ -1009,26 +1017,31 @@
             });
         }
 
+        // ★ 修改後：每日簽到 (只送錢，經驗改由下注累積)
         window.claimDaily = function(element, amount) { 
             if(currentUser.isGuest) { alert("訪客無法使用獎勵功能"); return; }
             if(element.classList.contains('claimed')) return; 
             if(element.classList.contains('normal')) return; 
 
             const today = new Date().setHours(0,0,0,0);
-            const lastDate = currentUser.lastLoginDate || 0;
             let streak = currentUser.loginStreak || 0;
-            
-            if (lastDate === today) { alert("今天已經領過囉！"); return; }
+            const lastDate = currentUser.lastLoginDate || 0;
 
+            // 如果中斷簽到，重置
             const oneDay = 86400000;
-            if (today - lastDate > oneDay) { streak = 0; }
+            if (today - lastDate > oneDay && lastDate !== 0) { streak = 0; }
 
             streak++; 
-            let bonus = 10000;
-            let msg = `🎉 簽到成功！獲得 ${bonus.toLocaleString()} 金幣！`;
+            
+            // 計算獎金
+            let baseBonus = 10000;
+            let vipBonus = (currentUser.vip || 1) * 5000; 
+            let bonus = baseBonus + vipBonus;
+            
+            let msg = `🎉 簽到成功！獲得 ${bonus.toLocaleString()} 金幣\n(VIP加成: ${vipBonus})`;
 
             if (streak >= 7) {
-                bonus = 100000;
+                bonus = 100000 + vipBonus; // 第七天大獎
                 streak = 0; 
                 msg = `🔥 連續簽到 7 天！獲得大獎 ${bonus.toLocaleString()} 金幣！`;
             }
@@ -1041,6 +1054,7 @@
                 LobbyAudio.playTake(); 
                 alert(msg);
                 renderRewards(); 
+                updateUserUI(); 
             });
         }
 
@@ -1048,25 +1062,31 @@
             const container = document.getElementById('daily-grid-container');
             if(!container || !currentUser) return;
             container.innerHTML = ''; 
+            
             let streak = currentUser.loginStreak || 0;
             const lastDate = currentUser.lastLoginDate || 0;
             const today = new Date().setHours(0,0,0,0);
             const claimedToday = (lastDate === today);
 
+            // 如果中斷超過一天，重置簽到進度
             const oneDay = 86400000;
             if (today - lastDate > oneDay && lastDate !== 0) { streak = 0; }
 
+            // ★ 找出「當前應該領哪一格」
+            let targetDay = streak + 1;
+            if (claimedToday) targetDay = streak + 1; 
+
             for(let i=1; i<=7; i++) {
                 let stateClass = 'normal'; 
-                if (claimedToday) {
-                    if (i <= streak) stateClass = 'claimed';
-                    else stateClass = 'normal';
+                
+                if (i <= streak) {
+                    stateClass = 'claimed';
+                } else if (i === streak + 1) {
+                    if (claimedToday) stateClass = 'normal'; 
+                    else stateClass = 'active'; // 今天還沒領，就是現在！
                 } else {
-                    if (i <= streak) stateClass = 'claimed';
-                    else if (i === streak + 1) stateClass = 'active';
-                    else stateClass = 'normal';
+                    stateClass = 'normal';
                 }
-                if (streak === 0 && claimedToday) stateClass = 'normal'; 
 
                 let valText = (i === 7) ? '100,000' : '10,000';
                 let imgHtml = (i === 7) ? '<img src="events.png" class="day-coin-img" style="width: 15%; opacity:0.8">' : '<img src="gold.png" class="day-coin-img">';
@@ -1077,6 +1097,7 @@
                 div.className = `day-box ${extraClass} ${stateClass}`;
                 div.innerHTML = `<span class="day-num">${title}</span>${imgHtml}<span class="day-val">${valText}</span>`;
                 
+                // ★ 綁定點擊事件 (只有 active 狀態才綁定)
                 if(stateClass === 'active') {
                     div.onclick = function() { claimDaily(this, 0); };
                 }
@@ -1389,11 +1410,14 @@
 
         function updateUserUI() {
             if(!currentUser) return;
+
+            // 1. 更新文字數據
             document.querySelector('.coin-number').innerText = currentUser.balance.toLocaleString('en-US', {minimumFractionDigits: 2});
             document.querySelector('.p-name').innerText = currentUser.name;
             document.querySelector('.p-id').innerText = "ID: " + currentUser.name;
             document.querySelector('.w-balance').innerText = "當前餘額: " + currentUser.balance.toLocaleString('en-US', {minimumFractionDigits: 2});
             
+            // 2. 處理 VIP 頭像與顏色
             const avatarImg = document.querySelector('.avatar-img');
             const vipText = document.querySelector('.vip-text');
             const profileAvatar = document.querySelector('.p-avatar');
@@ -1407,6 +1431,8 @@
                     profileAvatar.src = 'guest.png';
                     profileAvatar.style.borderColor = '#999';
                 }
+                // 訪客隱藏或歸零經驗條
+                document.querySelector('.vip-fill').style.width = '0%';
             } else {
                 avatarImg.src = 'player.png';
                 avatarImg.style.borderColor = '#ffd700'; 
@@ -1416,8 +1442,29 @@
                     profileAvatar.src = 'player.png';
                     profileAvatar.style.borderColor = '#ffd700';
                 }
+
+                // ★ [新增] 經驗條動態計算邏輯 ★
+                // 設定：下一級所需經驗 = 當前等級 * 1000 (例: VIP1需1000exp, VIP2需2000exp)
+                let currentExp = currentUser.exp || 0;
+                let currentVip = currentUser.vip || 1;
+                let nextLevelExp = currentVip * 1000; 
+                
+                // 計算百分比 (限制最大 100%)
+                let percent = (currentExp / nextLevelExp) * 100;
+                if(percent > 100) percent = 100;
+
+                // 更新 UI：寬度 與 文字
+                document.querySelector('.vip-fill').style.width = percent + '%';
+                
+                // 更新左右兩邊的 VIP 文字 (例如: VIP.1 ----> VIP.2)
+                const vipLabels = document.querySelectorAll('.vip-labels span');
+                if(vipLabels.length >= 2) {
+                    vipLabels[0].innerText = "VIP." + currentVip;
+                    vipLabels[1].innerText = "VIP." + (currentVip + 1);
+                }
             }
 
+            // 3. 處理登入/登出按鈕文字
             const authItem = document.getElementById('opt-auth-item');
             if (authItem) {
                 if (currentUser.isGuest) {
@@ -1462,7 +1509,10 @@
                     card.innerHTML = `<img src="${imgName}" class="game-img" alt="Game ${gameIndex}">`;
                     
                     if (gameIndex === 1) {
-                        card.onclick = function() {
+                        card.onclick = function(e) {
+                            // ★ 阻止事件冒泡，防止觸發背景音樂
+                            e.stopPropagation();
+
                             if (this.classList.contains('launching')) return;
                             LobbyAudio.fadeOut();
                             this.classList.add('launching');
@@ -1514,9 +1564,48 @@
             mainContainer.appendChild(spacer);
         }
 
+        // ★ 新功能：處理下注經驗值 (每下注 100 金幣 = 1 EXP)
+        function processBetExp(betAmount) {
+            if (!currentUser || currentUser.isGuest) return;
+
+            // 設定轉換率：例如下注 100 元獲得 1 點經驗
+            // 如果您希望下注多少就得多少經驗，改成 let gainedExp = betAmount;
+            let gainedExp = Math.floor(betAmount / 100); 
+            if (gainedExp < 1) return; // 下注太少不加經驗
+
+            let currentExp = (currentUser.exp || 0) + gainedExp;
+            let currentVip = currentUser.vip || 1;
+            
+            // 升級公式：等級 * 1000 (VIP1->2 需 1000, VIP2->3 需 2000)
+            let needExp = currentVip * 1000; 
+
+            // 檢查是否升級
+            let isLevelUp = false;
+            if (currentExp >= needExp) {
+                currentVip++;
+                currentExp = currentExp - needExp; // 保留溢出的經驗值
+                isLevelUp = true;
+            }
+
+            // 更新資料庫
+            const updates = {
+                exp: currentExp,
+                vip: currentVip
+            };
+
+            db.ref('players/' + myUserId).update(updates).then(() => {
+                if (isLevelUp) {
+                    LobbyAudio.playMoney(); // 播放音效
+                    // 顯示升級通知
+                    showGhostTicker(`🆙 恭喜升級！您現在是 VIP.${currentVip}！`);
+                }
+                updateUserUI(); // 更新左上角頭像條
+            });
+        }
+
         // --- ★ Main DOM Ready ★ ---
         document.addEventListener('DOMContentLoaded', () => {
-            LobbyAudio.init();  // ★ 請補上這一行，音效系統才會啟動
+            LobbyAudio.init();
             initUser(); 
             initDynamicGameList(); 
 
@@ -1651,9 +1740,21 @@
                     }
                 }, 500);
             }
+            // 處理餘額更新
             if (typeof event.data === 'object' && event.data !== null && event.data.type === 'updateBalance') {
                 if(!currentUser.isGuest) db.ref('players/' + myUserId).update({ balance: event.data.value });
                 else db.ref('players/' + myUserId).update({ balance: event.data.value });
+                
+                if(currentUser) { 
+                    currentUser.balance = event.data.value; 
+                    updateUserUI(); 
+                }
+            }
+
+            // ★ 新增：監聽「下注」事件來增加經驗值
+            if (typeof event.data === 'object' && event.data !== null && event.data.type === 'bet') {
+                const betAmount = event.data.amount; 
+                processBetExp(betAmount); 
             }
         });
 
