@@ -639,8 +639,19 @@
             </div>
             <div style="flex: 1; overflow-y: auto;">
                 <div class="stats-grid">
-                    <div class="stat-box"><div class="stat-label">總贏分</div><div class="stat-val" style="color: #00ff00;">98.5M</div></div>
-                    <div class="stat-box"><div class="stat-label">最高倍率</div><div class="stat-val" style="color: #ffd700;">x5000</div></div>
+                    <div class="stat-box" style="text-align: left; padding: 12px; display: flex; flex-direction: column; justify-content: center;">
+                        <div class="stat-label" style="text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px; margin-bottom: 5px;">📅 日期紀錄</div>
+                        <div style="font-size: 1.3vh; color: #aaa; margin: 2px 0;">創建: <span id="stat-join-date" style="color: #fff; float: right;">---</span></div>
+                        <div style="font-size: 1.3vh; color: #aaa; margin: 2px 0;">升級: <span id="stat-last-levelup" style="color: #fff; float: right;">---</span></div>
+                        <div style="font-size: 1.3vh; color: #aaa; margin: 2px 0;">今天: <span id="stat-today" style="color: #00ff00; float: right;">---</span></div>
+                    </div>
+                    
+                    <div class="stat-box" style="text-align: left; padding: 12px; display: flex; flex-direction: column; justify-content: center;">
+                        <div class="stat-label" style="text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px; margin-bottom: 5px;">🎰 遊玩紀錄</div>
+                        <div style="font-size: 1.3vh; color: #aaa; margin: 2px 0;">最常: <span id="stat-fav-game" style="color: #ffd700; float: right;">Dragon's Treasure</span></div>
+                        <div style="font-size: 1.3vh; color: #aaa; margin: 2px 0;">上次: <span id="stat-last-game" style="color: #ffd700; float: right;">Dragon's Treasure</span></div>
+                        <div style="font-size: 1.3vh; color: #aaa; margin: 2px 0;">局數: <span id="stat-total-spins" style="color: #00ffff; float: right;">0</span></div>
+                    </div>
                 </div>
                 <div class="settings-list">
                     <div class="setting-item">
@@ -657,8 +668,11 @@
                             <span class="slider-small"></span>
                         </label>
                     </div>
-                    <div class="setting-item"><span class="setting-label">推播通知</span><div style="color: #666;">OFF</div></div>
-                </div>
+                    <div class="setting-item" onclick="changePassword()" style="cursor: pointer;">
+                        <span class="setting-label">🔐 修改密碼</span>
+                        <div style="color: #aaa; font-size: 1.4vh;">點擊修改 ></div>
+                    </div>
+                    </div>
                 <div class="logout-btn" onclick="logout()">登出帳號</div>
             </div>
             <div class="panel-footer">
@@ -1417,6 +1431,32 @@
             document.querySelector('.p-id').innerText = "ID: " + currentUser.name;
             document.querySelector('.w-balance').innerText = "當前餘額: " + currentUser.balance.toLocaleString('en-US', {minimumFractionDigits: 2});
             
+            // ★★★ 新增：更新 Profile 的詳細數據 ★★★
+            // 1. 日期格式化 helper
+            const formatDate = (ts) => {
+                if (!ts) return "---";
+                return new Date(ts).toLocaleDateString(); // 格式像 2025/1/6
+            };
+
+            // 2. 填入數據 (如果有找到對應的 element)
+            if(document.getElementById('stat-join-date')) {
+                document.getElementById('stat-join-date').innerText = formatDate(currentUser.joinedAt);
+                
+                // ★ 修改處：將原本的 stat-last-login 改為 stat-last-levelup (上次升級)
+                const levelUpDate = currentUser.lastLevelUpDate ? formatDate(currentUser.lastLevelUpDate) : "---";
+                document.getElementById('stat-last-levelup').innerText = levelUpDate;
+                
+                document.getElementById('stat-today').innerText = formatDate(Date.now());
+                
+                // 暫時只有一款遊戲，所以先寫死，未來可從資料庫讀取
+                document.getElementById('stat-fav-game').innerText = "Dragon's Treasure"; 
+                document.getElementById('stat-last-game').innerText = "Dragon's Treasure";
+                
+                // 顯示總局數
+                document.getElementById('stat-total-spins').innerText = (currentUser.totalSpins || 0).toLocaleString();
+            }
+            // ★★★ 新增結束 ★★★
+
             // 2. 處理 VIP 頭像與顏色
             const avatarImg = document.querySelector('.avatar-img');
             const vipText = document.querySelector('.vip-text');
@@ -1488,6 +1528,60 @@
             mainContainer.innerHTML = '';
             slotsContainer.innerHTML = '';
 
+            // ★ 抽出啟動遊戲的邏輯，讓「主頁卡片」和「Slots列表」都能共用
+            const launchDragonGame = (e) => {
+                e.stopPropagation(); // 阻止冒泡
+                
+                // 關閉所有面板 (如果在 Slots 面板內點擊，需要先關閉面板)
+                document.querySelectorAll('.dashboard-panel').forEach(p => p.classList.remove('active'));
+                document.querySelector('.main-scroll-area').classList.add('hidden'); // 隱藏主捲動區
+                
+                // 播放音效
+                LobbyAudio.playClick();
+                LobbyAudio.fadeOut();
+
+                // 視覺特效 (如果是從卡片點擊，卡片會有飛入動畫；從 Slots 點則直接轉場)
+                const dragonCard = document.getElementById('game-dragon');
+                if(dragonCard) dragonCard.classList.add('launching');
+                
+                const overlay = document.getElementById('transition-overlay');
+                const gameContainer = document.getElementById('game-container');
+                const dragonUrl = "https://zendwucloud.github.io/Dragon-Treasure/"; 
+
+                setTimeout(() => {
+                    overlay.classList.add('active'); 
+                    setTimeout(() => {
+                        let iframe = document.createElement('iframe');
+                        iframe.id = "game-frame";
+                        iframe.src = dragonUrl;
+                        iframe.allow = "autoplay; fullscreen";
+                        const oldFrame = document.getElementById('game-frame');
+                        if(oldFrame) oldFrame.remove();
+                        gameContainer.appendChild(iframe);
+                        gameContainer.style.display = 'block';
+                        
+                        iframe.onload = () => { 
+                            if(currentUser) {
+                                iframe.contentWindow.postMessage({
+                                    type: 'initBalance', 
+                                    value: currentUser.balance
+                                }, '*');
+
+                                const bgmOn = document.getElementById('bgm-toggle').checked;
+                                const sfxOn = document.getElementById('sfx-toggle').checked;
+                                iframe.contentWindow.postMessage({
+                                    type: 'updateSettings',
+                                    music: bgmOn,
+                                    sfx: sfxOn
+                                }, '*');
+                            }
+                            setTimeout(() => { overlay.classList.remove('active'); }, 300); 
+                        };
+                        setTimeout(() => { if(overlay.classList.contains('active')) overlay.classList.remove('active'); }, 1500);
+                    }, 500); 
+                }, 400);
+            };
+
             let gameIndex = 1;
             let keepChecking = true;
 
@@ -1503,63 +1597,26 @@
                         img.src = imgName;
                     });
 
+                    // 1. 建立主頁卡片
                     const card = document.createElement('div');
                     card.className = 'game-card';
-                    if (gameIndex === 1) card.id = 'game-dragon'; 
-                    card.innerHTML = `<img src="${imgName}" class="game-img" alt="Game ${gameIndex}">`;
-                    
                     if (gameIndex === 1) {
-                        card.onclick = function(e) {
-                            // ★ 阻止事件冒泡，防止觸發背景音樂
-                            e.stopPropagation();
-
-                            if (this.classList.contains('launching')) return;
-                            LobbyAudio.fadeOut();
-                            this.classList.add('launching');
-                            
-                            const overlay = document.getElementById('transition-overlay');
-                            const gameContainer = document.getElementById('game-container');
-                            const dragonUrl = "https://zendwucloud.github.io/Dragon-Treasure/"; 
-
-                            setTimeout(() => {
-                                overlay.classList.add('active'); 
-                                setTimeout(() => {
-                                    let iframe = document.createElement('iframe');
-                                    iframe.id = "game-frame";
-                                    iframe.src = dragonUrl;
-                                    iframe.allow = "autoplay; fullscreen";
-                                    const oldFrame = document.getElementById('game-frame');
-                                    if(oldFrame) oldFrame.remove();
-                                    gameContainer.appendChild(iframe);
-                                    gameContainer.style.display = 'block';
-                                    
-                                    iframe.onload = () => { 
-                                        if(currentUser) {
-                                            iframe.contentWindow.postMessage({
-                                                type: 'initBalance', 
-                                                value: currentUser.balance
-                                            }, '*');
-
-                                            // ★ 新增：一進遊戲就馬上同步目前的音效設定
-                                            const bgmOn = document.getElementById('bgm-toggle').checked;
-                                            const sfxOn = document.getElementById('sfx-toggle').checked;
-                                            iframe.contentWindow.postMessage({
-                                                type: 'updateSettings',
-                                                music: bgmOn,
-                                                sfx: sfxOn
-                                            }, '*');
-                                        }
-                                        setTimeout(() => { overlay.classList.remove('active'); }, 300); 
-                                    };
-                                    setTimeout(() => { if(overlay.classList.contains('active')) overlay.classList.remove('active'); }, 1500);
-                                }, 500); 
-                            }, 400);
-                        };
+                        card.id = 'game-dragon'; 
+                        // ★ 綁定啟動函式
+                        card.onclick = launchDragonGame;
                     }
+                    card.innerHTML = `<img src="${imgName}" class="game-img" alt="Game ${gameIndex}">`;
                     mainContainer.appendChild(card);
 
+                    // 2. 建立 Slots 面板圖示
                     const slot = document.createElement('div');
                     slot.className = 'slot-icon';
+                    if (gameIndex === 1) {
+                        // ★ 這裡也要綁定啟動函式！
+                        slot.onclick = launchDragonGame;
+                        // 加個手型游標提示
+                        slot.style.cursor = 'pointer';
+                    }
                     slot.innerHTML = `<img src="${imgName}" class="slot-thumb">`;
                     slotsContainer.appendChild(slot);
 
@@ -1580,35 +1637,77 @@
             // 設定轉換率：例如下注 100 元獲得 1 點經驗
             // 如果您希望下注多少就得多少經驗，改成 let gainedExp = betAmount;
             let gainedExp = Math.floor(betAmount / 100); 
-            if (gainedExp < 1) return; // 下注太少不加經驗
+            if (gainedExp < 1 && betAmount > 0) gainedExp = 0; // 修正邏輯
 
             let currentExp = (currentUser.exp || 0) + gainedExp;
             let currentVip = currentUser.vip || 1;
-            
-            // 升級公式：等級 * 1000 (VIP1->2 需 1000, VIP2->3 需 2000)
             let needExp = currentVip * 1000; 
 
-            // 檢查是否升級
+            // ★ 新增：累計遊玩局數 (Total Spins)
+            // 每次收到 bet 訊號，代表玩家玩了一局
+            let totalSpins = (currentUser.totalSpins || 0) + 1;
+
             let isLevelUp = false;
             if (currentExp >= needExp) {
                 currentVip++;
-                currentExp = currentExp - needExp; // 保留溢出的經驗值
+                currentExp = currentExp - needExp; 
                 isLevelUp = true;
             }
 
-            // 更新資料庫
             const updates = {
                 exp: currentExp,
-                vip: currentVip
+                vip: currentVip,
+                totalSpins: totalSpins // ★ 寫入資料庫
             };
+
+            // ★★★ 新增：如果是升級狀態，順便紀錄當下時間 ★★★
+            if (isLevelUp) {
+                updates.lastLevelUpDate = Date.now();
+            }
+            // ★★★ 新增結束 ★★★
 
             db.ref('players/' + myUserId).update(updates).then(() => {
                 if (isLevelUp) {
                     LobbyAudio.playMoney(); // 播放音效
                     // 顯示升級通知
                     showGhostTicker(`🆙 恭喜升級！您現在是 VIP.${currentVip}！`);
+                    
+                    // ★ 順便更新本地緩存
+                    currentUser.lastLevelUpDate = updates.lastLevelUpDate;
                 }
-                updateUserUI(); // 更新左上角頭像條
+                // 更新 currentUser 本地資料，確保 UI 立即反應
+                currentUser.exp = currentExp;
+                currentUser.vip = currentVip;
+                currentUser.totalSpins = totalSpins;
+                updateUserUI(); 
+            });
+        }
+
+        // ★ 修改密碼功能
+        window.changePassword = function() {
+            if (!currentUser || currentUser.isGuest) {
+                alert("訪客無法修改密碼，請先註冊正式帳號。");
+                return;
+            }
+            
+            // 簡單的安全驗證
+            let oldPass = prompt("請輸入舊密碼以驗證身分：");
+            if (oldPass !== currentUser.password) {
+                alert("❌ 舊密碼錯誤！");
+                return;
+            }
+
+            let newPass = prompt("請輸入新密碼：");
+            if (!newPass || newPass.length < 4) {
+                alert("❌ 密碼太短或無效！");
+                return;
+            }
+
+            db.ref('players/' + myUserId).update({
+                password: newPass
+            }).then(() => {
+                LobbyAudio.playTake();
+                alert("✅ 密碼修改成功！下次登入請使用新密碼。");
             });
         }
 
