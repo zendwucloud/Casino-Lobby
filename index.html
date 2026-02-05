@@ -786,6 +786,18 @@
         }
         const db = firebase.database(); // ★ 全域變數 db
 
+
+// --- 【從這裡開始加入新代碼】 ---
+firebase.auth().signInAnonymously()
+    .then(() => {
+        console.log("Firebase 匿名認證成功");
+    })
+    .catch((error) => {
+        console.error("Firebase 認證失敗:", error.code, error.message);
+    });
+// --- 【新代碼結束】 ---
+
+
         // --- 2. User Logic with Firebase (全新帳號密碼版) ---
         let currentUser = null;
         let myUserId = localStorage.getItem('casino_firebase_uid');
