@@ -1638,11 +1638,16 @@ firebase.auth().signInAnonymously()
                         slot.onclick = (e) => launchGame(e, config.url, config.name);
                         slot.style.cursor = 'pointer';
                     } else {
-                        // ★ 如果沒有網址，圖示變暗，點擊跳出提示
-                        card.style.filter = 'grayscale(0.7) brightness(0.7)';
-                        slot.style.filter = 'grayscale(0.7) brightness(0.7)';
-                        card.onclick = () => { LobbyAudio.playClick(); alert("🚧 遊戲建置中，敬請期待！"); };
-                        slot.onclick = () => { LobbyAudio.playClick(); alert("🚧 遊戲建置中，敬請期待！"); };
+                        // ★ 如果沒有網址，圖示變暗，點擊時開啟「施工中」頁面！
+                        card.style.filter = 'grayscale(0) brightness(0.7)';
+                        slot.style.filter = 'grayscale(0) brightness(0.7)';
+                        
+                        // ▼▼▼ 原本是 alert，改成下面這兩行 ▼▼▼
+                        card.onclick = (e) => launchGame(e, 'coming_soon.html', 'Coming Soon');
+                        slot.onclick = (e) => launchGame(e, 'coming_soon.html', 'Coming Soon');
+                        // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+                        
+                        slot.style.cursor = 'pointer';
                     }
 
                     mainContainer.appendChild(card);
@@ -1887,12 +1892,12 @@ firebase.auth().signInAnonymously()
             }
         });
 
-        // ★ Home 鍵監聽 (全域)
+     // ★ Home 鍵監聽 (全域)
         window.addEventListener('message', (event) => {
             if (typeof event.data === 'string' && event.data === 'closeGame') {
                 const overlay = document.getElementById('transition-overlay');
                 const gameContainer = document.getElementById('game-container');
-                const dragonCard = document.getElementById('game-dragon');
+                
                 overlay.classList.add('active'); 
                 
                 if(currentUser && currentUser.isGuest) {
@@ -1907,9 +1912,16 @@ firebase.auth().signInAnonymously()
                     gameContainer.style.display = 'none';
                     const iframe = document.getElementById('game-frame');
                     if(iframe) iframe.remove(); 
-                    if(dragonCard) dragonCard.classList.remove('launching');
+                    
+                    // ★ 修正 1：清除「所有」卡片的點擊特效狀態，而不是只清第一張
+                    document.querySelectorAll('.game-card.launching').forEach(c => c.classList.remove('launching'));
+                    
+                    // ★ 修正 2：自動把大廳的遊戲列表重新滑入顯示
+                    document.querySelector('.main-scroll-area').classList.remove('hidden');
+                    
                     overlay.classList.remove('active'); 
                     LobbyAudio.playBGM(); 
+                    
                     if(myUserId) {
                         db.ref('players/' + myUserId).once('value', (snapshot) => {
                             const data = snapshot.val();
@@ -1918,6 +1930,7 @@ firebase.auth().signInAnonymously()
                     }
                 }, 500);
             }
+
             // 處理餘額更新
             if (typeof event.data === 'object' && event.data !== null && event.data.type === 'updateBalance') {
                 if(!currentUser.isGuest) db.ref('players/' + myUserId).update({ balance: event.data.value });
