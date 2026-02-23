@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coming Soon</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #000; /* 背景預設全黑，避免影片載入前閃白 */
+            overflow: hidden; /* 防止滾動條出現 */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* 滿版背景影片設定 */
+        #bg-video {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* ★ 這是關鍵：確保影片等比例無限放大填滿整個螢幕，不會變形 */
+            z-index: -1; /* 把它藏在最底層 */
+        }
+
+        /* 加上一層半透明黑底 (可選) 
+           如果你的影片太亮，這層可以讓前方的按鈕更清楚。如果不需要可以直接把 0.3 改成 0 */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0); 
+            z-index: 1;
+        }
+
+        /* UI 容器：負責把按鈕推到畫面下方 */
+        .ui-container {
+            position: relative;
+            z-index: 10; /* 確保按鈕在影片和遮罩之上 */
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end; /* 將內容對齊到最下方 */
+            align-items: center; /* 水平置中 */
+            height: 100vh;
+            padding-bottom: 12vh; /* 距離底部的空間，可自行微調 */
+            box-sizing: border-box;
+        }
+
+        /* 返回大廳按鈕 (保留你原本喜歡的 Lobby 風格) */
+        .back-btn {
+            background: linear-gradient(180deg, #ff4500, #cc3700);
+            border: 2px solid #ff7300;
+            border-radius: 30px;
+            padding: 15px 40px;
+            color: white;
+            font-weight: 900;
+            font-size: 2.2vh;
+            letter-spacing: 2px;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.6), inset 0 2px 5px rgba(255,255,255,0.3);
+            transition: transform 0.1s, filter 0.1s;
+            text-transform: uppercase;
+        }
+        .back-btn:active {
+            transform: scale(0.95);
+            filter: brightness(1.2);
+        }
+    </style>
+</head>
+<body>
+
+    <video id="bg-video" autoplay loop muted playsinline>
+        <source src="coming_soon_bg.mp4" type="video/mp4">
+    </video>
+
+    
+
+    <div class="ui-container">
+        <button class="back-btn" onclick="goBack()">返回大廳</button>
+    </div>
+
+    <script>
+        function goBack() {
+            if (window.parent) {
+                window.parent.postMessage('closeGame', '*');
+            }
+        }
+
+        // --- ★ 解決聲音與播放問題的聰明代碼 ★ ---
+        document.addEventListener("DOMContentLoaded", function() {
+            const video = document.getElementById('bg-video');
+            
+            // 1. 嘗試直接解除靜音並播放
+            video.muted = false;
+            let playPromise = video.play();
+
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    // 2. 如果被瀏覽器擋下來了，退而求其次：先靜音讓畫面能動！
+                    video.muted = true;
+                    video.play();
+                    
+                    // 3. 只要玩家的手指/滑鼠一碰到螢幕任何地方，瞬間把聲音打開！
+                    document.body.addEventListener('pointerdown', function() {
+                        video.muted = false;
+                    }, { once: true });
+                });
+            }
+        });
+    </script>
+</body>
+</html>
