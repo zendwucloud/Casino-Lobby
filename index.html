@@ -1541,35 +1541,42 @@ firebase.auth().signInAnonymously()
             mainContainer.innerHTML = '';
             slotsContainer.innerHTML = '';
 
-            // ★ 抽出啟動遊戲的邏輯，讓「主頁卡片」和「Slots列表」都能共用
-            const launchDragonGame = (e) => {
-                e.stopPropagation(); // 阻止冒泡
-                
-                // 關閉所有面板 (如果在 Slots 面板內點擊，需要先關閉面板)
+            // ★ 1. 先從 Firebase 抓取你在 Admin 設定好的遊戲網址清單
+            let gamesConfig = {};
+            try {
+                const snapshot = await db.ref('system/games').once('value');
+                gamesConfig = snapshot.val() || {};
+            } catch (error) {
+                console.error("無法讀取遊戲設定:", error);
+            }
+
+            // ★ 2. 建立一個「通用」的啟動函式，根據傳入的 url 開啟遊戲
+            const launchGame = (e, targetUrl, gameName) => {
+                e.stopPropagation(); 
                 document.querySelectorAll('.dashboard-panel').forEach(p => p.classList.remove('active'));
-                document.querySelector('.main-scroll-area').classList.add('hidden'); // 隱藏主捲動區
+                document.querySelector('.main-scroll-area').classList.add('hidden'); 
                 
-                // 播放音效
                 LobbyAudio.playClick();
                 LobbyAudio.fadeOut();
 
-                // 視覺特效 (如果是從卡片點擊，卡片會有飛入動畫；從 Slots 點則直接轉場)
-                const dragonCard = document.getElementById('game-dragon');
-                if(dragonCard) dragonCard.classList.add('launching');
+                // 視覺特效 (如果是從卡片點擊，卡片會有飛入動畫)
+                const card = e.currentTarget.closest('.game-card');
+                if(card) card.classList.add('launching');
                 
                 const overlay = document.getElementById('transition-overlay');
                 const gameContainer = document.getElementById('game-container');
-                const dragonUrl = "https://zendwucloud.github.io/Dragon-Treasure/"; 
 
                 setTimeout(() => {
                     overlay.classList.add('active'); 
                     setTimeout(() => {
                         let iframe = document.createElement('iframe');
                         iframe.id = "game-frame";
-                        iframe.src = dragonUrl;
+                        iframe.src = targetUrl; // ★ 使用動態傳入的網址
                         iframe.allow = "autoplay; fullscreen";
+                        
                         const oldFrame = document.getElementById('game-frame');
                         if(oldFrame) oldFrame.remove();
+                        
                         gameContainer.appendChild(iframe);
                         gameContainer.style.display = 'block';
                         
@@ -1595,6 +1602,7 @@ firebase.auth().signInAnonymously()
                 }, 400);
             };
 
+            // ★ 3. 掃描本地圖片 (game001.png ~ game099.png) 並套用設定
             let gameIndex = 1;
             let keepChecking = true;
 
@@ -1610,32 +1618,39 @@ firebase.auth().signInAnonymously()
                         img.src = imgName;
                     });
 
-                    // 1. 建立主頁卡片
+                    // 檢查資料庫有沒有設定這款遊戲的網址
+                    const config = gamesConfig[gameIndex];
+                    const isConfigured = config && config.url && config.active;
+
+                    // 建立主頁卡片
                     const card = document.createElement('div');
                     card.className = 'game-card';
-                    if (gameIndex === 1) {
-                        card.id = 'game-dragon'; 
-                        // ★ 綁定啟動函式
-                        card.onclick = launchDragonGame;
-                    }
                     card.innerHTML = `<img src="${imgName}" class="game-img" alt="Game ${gameIndex}">`;
-                    mainContainer.appendChild(card);
-
-                    // 2. 建立 Slots 面板圖示
+                    
+                    // 建立 Slots 面板圖示
                     const slot = document.createElement('div');
                     slot.className = 'slot-icon';
-                    if (gameIndex === 1) {
-                        // ★ 這裡也要綁定啟動函式！
-                        slot.onclick = launchDragonGame;
-                        // 加個手型游標提示
-                        slot.style.cursor = 'pointer';
-                    }
                     slot.innerHTML = `<img src="${imgName}" class="slot-thumb">`;
+
+                    // ★ 如果有網址，綁定正常啟動事件
+                    if (isConfigured) {
+                        card.onclick = (e) => launchGame(e, config.url, config.name);
+                        slot.onclick = (e) => launchGame(e, config.url, config.name);
+                        slot.style.cursor = 'pointer';
+                    } else {
+                        // ★ 如果沒有網址，圖示變暗，點擊跳出提示
+                        card.style.filter = 'grayscale(0.7) brightness(0.7)';
+                        slot.style.filter = 'grayscale(0.7) brightness(0.7)';
+                        card.onclick = () => { LobbyAudio.playClick(); alert("🚧 遊戲建置中，敬請期待！"); };
+                        slot.onclick = () => { LobbyAudio.playClick(); alert("🚧 遊戲建置中，敬請期待！"); };
+                    }
+
+                    mainContainer.appendChild(card);
                     slotsContainer.appendChild(slot);
 
                     gameIndex++;
                 } catch (e) {
-                    keepChecking = false;
+                    keepChecking = false; // 找不到圖片，停止掃描
                 }
             }
             const spacer = document.createElement('div');
