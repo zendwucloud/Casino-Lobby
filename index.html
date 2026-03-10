@@ -487,6 +487,39 @@
         .opt-icon { width: 20px; text-align: center; }
         .opt-divider { height: 1px; background: rgba(255,255,255,0.1); margin: 4px 0; }
 
+/* --- 遊戲卡片 Hover 說明效果 --- */
+        .game-hover-info {
+            position: absolute;
+            bottom: 0; left: 0; width: 100%; height: 50%; /* 顯示在下半部 */
+            background: linear-gradient(0deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 70%, transparent 100%);
+            display: flex; align-items: flex-end; justify-content: center;
+            padding: 15px;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.3s ease; /* 淡入淡出時間 */
+            z-index: 10;
+        }
+        .hover-text {
+            color: #fff; font-size: 1.5vh; text-align: center;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+            line-height: 1.4; font-weight: bold;
+        }
+        
+        /* 電腦版滑鼠懸停 (延遲 0.5 秒顯示) */
+        @media (hover: hover) {
+            .game-card:hover .game-hover-info {
+                opacity: 1;
+                transition-delay: 0.5s; /* 停留在上面 0.5 秒才觸發 */
+            }
+        }
+        
+        /* 手機版長按觸發 (選擇性) */
+        @media (hover: none) {
+            .game-card:active .game-hover-info {
+                opacity: 1;
+                transition-delay: 0.3s;
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -1541,16 +1574,23 @@ firebase.auth().signInAnonymously()
             mainContainer.innerHTML = '';
             slotsContainer.innerHTML = '';
 
-            // ★ 1. 先從 Firebase 抓取你在 Admin 設定好的遊戲網址清單
+            // ★ 1. 從 Firebase 抓取遊戲清單
             let gamesConfig = {};
             try {
                 const snapshot = await db.ref('system/games').once('value');
                 gamesConfig = snapshot.val() || {};
             } catch (error) {
                 console.error("無法讀取遊戲設定:", error);
+                return;
             }
 
-            // ★ 2. 建立一個「通用」的啟動函式，根據傳入的 url 開啟遊戲
+            // ★ 2. 將物件轉為陣列，並依照 order 排序
+            let gamesArray = Object.entries(gamesConfig).map(([id, data]) => {
+                return { id: id, ...data };
+            });
+            gamesArray.sort((a, b) => (a.order || 99) - (b.order || 99));
+
+            // ★ 3. 建立啟動遊戲的通用函式
             const launchGame = (e, targetUrl, gameName) => {
                 e.stopPropagation(); 
                 document.querySelectorAll('.dashboard-panel').forEach(p => p.classList.remove('active'));
@@ -1559,7 +1599,6 @@ firebase.auth().signInAnonymously()
                 LobbyAudio.playClick();
                 LobbyAudio.fadeOut();
 
-                // 視覺特效 (如果是從卡片點擊，卡片會有飛入動畫)
                 const card = e.currentTarget.closest('.game-card');
                 if(card) card.classList.add('launching');
                 
@@ -1571,7 +1610,7 @@ firebase.auth().signInAnonymously()
                     setTimeout(() => {
                         let iframe = document.createElement('iframe');
                         iframe.id = "game-frame";
-                        iframe.src = targetUrl; // ★ 使用動態傳入的網址
+                        iframe.src = targetUrl; 
                         iframe.allow = "autoplay; fullscreen";
                         
                         const oldFrame = document.getElementById('game-frame');
@@ -1602,62 +1641,58 @@ firebase.auth().signInAnonymously()
                 }, 400);
             };
 
-            // ★ 3. 掃描本地圖片 (game001.png ~ game099.png) 並套用設定
-            let gameIndex = 1;
-            let keepChecking = true;
+            // ★ 4. 根據 Firebase 資料動態生成卡片
+            gamesArray.forEach((game, index) => {
+                // 如果這款遊戲設定為不顯示 (active 為 false 或狀態為 hidden)，就跳過
+                if (game.active === false || game.status === 'hidden') return;
 
-            while (keepChecking && gameIndex <= 99) {
-                const numStr = gameIndex.toString().padStart(3, '0');
-                const imgName = `game${numStr}.png`;
+                const iconUrl = game.icon || 'placeholder.png'; // 如果沒填 Icon，給個預設圖防呆
+                const isOnline = game.status === 'online' && game.url;
+
+                // 建立主頁卡片
+                const card = document.createElement('div');
+                card.className = 'game-card';
+                card.style.animationDelay = `${index * 0.1}s`; // 讓進場動畫有層次感
                 
-                try {
-                    await new Promise((resolve, reject) => {
-                        const img = new Image();
-                        img.onload = resolve;
-                        img.onerror = reject;
-                        img.src = imgName;
-                    });
-
-                    // 檢查資料庫有沒有設定這款遊戲的網址
-                    const config = gamesConfig[gameIndex];
-                    const isConfigured = config && config.url && config.active;
-
-                    // 建立主頁卡片
-                    const card = document.createElement('div');
-                    card.className = 'game-card';
-                    card.innerHTML = `<img src="${imgName}" class="game-img" alt="Game ${gameIndex}">`;
-                    
-                    // 建立 Slots 面板圖示
-                    const slot = document.createElement('div');
-                    slot.className = 'slot-icon';
-                    slot.innerHTML = `<img src="${imgName}" class="slot-thumb">`;
-
-                    // ★ 如果有網址，綁定正常啟動事件
-                    if (isConfigured) {
-                        card.onclick = (e) => launchGame(e, config.url, config.name);
-                        slot.onclick = (e) => launchGame(e, config.url, config.name);
-                        slot.style.cursor = 'pointer';
-                    } else {
-                        // ★ 如果沒有網址，圖示變暗，點擊時開啟「施工中」頁面！
-                        card.style.filter = 'grayscale(0) brightness(0.7)';
-                        slot.style.filter = 'grayscale(0) brightness(0.7)';
-                        
-                        // ▼▼▼ 原本是 alert，改成下面這兩行 ▼▼▼
-                        card.onclick = (e) => launchGame(e, 'coming_soon.html', 'Coming Soon');
-                        slot.onclick = (e) => launchGame(e, 'coming_soon.html', 'Coming Soon');
-                        // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
-                        
-                        slot.style.cursor = 'pointer';
-                    }
-
-                    mainContainer.appendChild(card);
-                    slotsContainer.appendChild(slot);
-
-                    gameIndex++;
-                } catch (e) {
-                    keepChecking = false; // 找不到圖片，停止掃描
+                // --- ★ 新增：Hover 遊戲說明的 DOM 結構 ---
+                let hoverHtml = '';
+                if (game.description) {
+                    hoverHtml = `
+                        <div class="game-hover-info">
+                            <div class="hover-text">${game.description.replace(/\n/g, '<br>')}</div>
+                        </div>
+                    `;
                 }
-            }
+
+                card.innerHTML = `
+                    <img src="${iconUrl}" class="game-img" alt="${game.name}" onerror="this.src='placeholder.png'">
+                    ${hoverHtml}
+                `;
+                
+                // 建立 Slots 面板的小圖示
+                const slot = document.createElement('div');
+                slot.className = 'slot-icon';
+                slot.innerHTML = `<img src="${iconUrl}" class="slot-thumb" onerror="this.src='placeholder.png'">`;
+
+                // 判斷遊戲狀態綁定事件
+                if (isOnline) {
+                    card.onclick = (e) => launchGame(e, game.url, game.name);
+                    slot.onclick = (e) => launchGame(e, game.url, game.name);
+                    slot.style.cursor = 'pointer';
+                } else {
+                    // 如果不是 online (例如 maintenance)，變暗並顯示 Coming Soon
+                    card.style.filter = 'grayscale(0) brightness(0.7)';
+                    slot.style.filter = 'grayscale(0) brightness(0.7)';
+                    card.onclick = (e) => launchGame(e, 'coming_soon.html', 'Coming Soon');
+                    slot.onclick = (e) => launchGame(e, 'coming_soon.html', 'Coming Soon');
+                    slot.style.cursor = 'pointer';
+                }
+
+                mainContainer.appendChild(card);
+                slotsContainer.appendChild(slot);
+            });
+
+            // 加入底部空白區塊避免被導航列擋住
             const spacer = document.createElement('div');
             spacer.style.height = '5vh';
             mainContainer.appendChild(spacer);
