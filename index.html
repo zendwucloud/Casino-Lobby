@@ -1590,13 +1590,18 @@ firebase.auth().signInAnonymously()
             });
             gamesArray.sort((a, b) => (a.order || 99) - (b.order || 99));
 
-            // ★ 3. 建立啟動遊戲的通用函式 (🌟 新增接收 gameDesc 參數與防錯機制)
+            // 🌟 1. 先在外部定義一個變數，紀錄當前開啟遊戲的文案
+            let activeGameDesc = "";
+
             const launchGame = (e, targetUrl, gameName, gameDesc) => {
                 if(typeof LobbyAudio !== 'undefined') LobbyAudio.fadeOut();
 
                 const card = e.currentTarget.closest('.game-card');
                 if(card && card.classList.contains('launching')) return; 
                 if(card) card.classList.add('launching');
+
+                // 🌟 2. 紀錄當前遊戲的文案，供後續補發使用
+                activeGameDesc = gameDesc;
 
                 const overlay = document.getElementById('transition-overlay');
                 const gameContainer = document.getElementById('game-container');
@@ -1613,51 +1618,61 @@ firebase.auth().signInAnonymously()
 
                 setTimeout(() => {
                     overlay.classList.add('active'); 
-                    
                     setTimeout(() => {
                         gameContainer.style.display = 'block';
-
                         iframe.onload = () => { 
-                            // 🌟 核心修正：將「餘額、設定、文案」全部包在 500 毫秒的延遲中，確保遊戲端 100% 準備好接收！
+                            // 初始發送
                             setTimeout(() => {
-                                // 1. 發送玩家餘額與音效設定
                                 if(typeof currentUser !== 'undefined' && currentUser) {
-                                    iframe.contentWindow.postMessage({
-                                        type: 'initBalance', 
-                                        value: currentUser.balance
-                                    }, '*');
-
-                                    const bgmToggle = document.getElementById('bgm-toggle');
-                                    const sfxToggle = document.getElementById('sfx-toggle');
-                                    const bgmOn = bgmToggle ? bgmToggle.checked : true;
-                                    const sfxOn = sfxToggle ? sfxToggle.checked : true;
-                                    
+                                    iframe.contentWindow.postMessage({ type: 'initBalance', value: currentUser.balance }, '*');
                                     iframe.contentWindow.postMessage({
                                         type: 'updateSettings',
-                                        music: bgmOn,
-                                        sfx: sfxOn
+                                        music: document.getElementById('bgm-toggle').checked,
+                                        sfx: document.getElementById('sfx-toggle').checked
                                     }, '*');
                                 }
-
-                                // 2. 發送動態說明文案
-                                if (gameDesc) {
-                                    console.log("【大廳發送】準備將文案傳給遊戲:", gameDesc);
-                                    iframe.contentWindow.postMessage({
-                                        type: 'initPromoText',
-                                        text: gameDesc
-                                    }, '*');
-                                } else {
-                                    console.log("【大廳警告】沒有讀取到遊戲文案！請檢查後台資料庫變數是否叫 game.description");
+                                if (activeGameDesc) {
+                                    iframe.contentWindow.postMessage({ type: 'initPromoText', text: activeGameDesc }, '*');
                                 }
                             }, 500);
-
                             setTimeout(() => { overlay.classList.remove('active'); }, 300); 
                         };
-                        
-                        setTimeout(() => { if(overlay.classList.contains('active')) overlay.classList.remove('active'); }, 1500);
                     }, 500); 
                 }, 400);
             };
+
+            // 🌟 3. 監聽器放在 launchGame 外面，且正確處理「補發」與「關閉」
+            window.addEventListener('message', (event) => {
+                const data = event.data;
+
+                // 處理重整補發
+                if (data && data.type === 'requestInitData') {
+                    const iframe = document.getElementById('game-frame');
+                    if (iframe && iframe.contentWindow && currentUser) {
+                        console.log("【大廳補發】同步數據中...");
+                        iframe.contentWindow.postMessage({ type: 'initBalance', value: currentUser.balance }, '*');
+                        iframe.contentWindow.postMessage({ type: 'initPromoText', text: activeGameDesc }, '*');
+                    }
+                    return;
+                }
+
+                // 處理關閉遊戲 (恢復原本遺失的判斷)
+                if (typeof data === 'string' && data === 'closeGame') {
+                    const overlay = document.getElementById('transition-overlay');
+                    const gameContainer = document.getElementById('game-container');
+                    overlay.classList.add('active');
+
+                    setTimeout(() => {
+                        gameContainer.style.display = 'none';
+                        const iframe = document.getElementById('game-frame');
+                        if(iframe) iframe.remove(); 
+                        document.querySelectorAll('.game-card.launching').forEach(c => c.classList.remove('launching'));
+                        document.querySelector('.main-scroll-area').classList.remove('hidden');
+                        overlay.classList.remove('active'); 
+                        LobbyAudio.playBGM(); 
+                    }, 500);
+                }
+            });
 
             // ★ 4. 根據 Firebase 資料動態生成卡片
             gamesArray.forEach((game, index) => {
@@ -1946,60 +1961,49 @@ firebase.auth().signInAnonymously()
             }
         });
 
-     // ★ Home 鍵監聽 (全域)
+     // ★ Home 鍵監聽 (全域修正整合版)
         window.addEventListener('message', (event) => {
-            if (typeof event.data === 'string' && event.data === 'closeGame') {
-                const overlay = document.getElementById('transition-overlay');
-                const gameContainer = document.getElementById('game-container');
-                
-                overlay.classList.add('active'); 
-                
-                if(currentUser && currentUser.isGuest) {
-                    db.ref('players/' + myUserId).remove().then(() => {
-                        sessionStorage.removeItem('casino_guest_id');
-                        setTimeout(() => location.reload(), 500);
-                    });
-                    return;
-                }
+            const data = event.data; 
+            if (!data) return;
 
+            const overlay = document.getElementById('transition-overlay');
+            const gameContainer = document.getElementById('game-container');
+
+            // 1. 處理遊戲重整請求 (補發資料給遊戲)
+            if (data.type === 'requestInitData') {
+                const iframe = document.getElementById('game-frame');
+                if (iframe && iframe.contentWindow && currentUser) {
+                    console.log("【大廳補發】同步數據中...");
+                    iframe.contentWindow.postMessage({ type: 'initBalance', value: currentUser.balance }, '*');
+                    iframe.contentWindow.postMessage({ type: 'initPromoText', text: activeGameDesc }, '*');
+                }
+                return; // 補發完畢，不往下跑
+            }
+
+            // 2. 處理關閉遊戲 (Home 鍵)
+            if (typeof data === 'string' && data === 'closeGame') {
+                if (overlay) overlay.classList.add('active');
                 setTimeout(() => {
-                    gameContainer.style.display = 'none';
+                    if (gameContainer) gameContainer.style.display = 'none';
                     const iframe = document.getElementById('game-frame');
                     if(iframe) iframe.remove(); 
-                    
-                    // ★ 修正 1：清除「所有」卡片的點擊特效狀態，而不是只清第一張
                     document.querySelectorAll('.game-card.launching').forEach(c => c.classList.remove('launching'));
-                    
-                    // ★ 修正 2：自動把大廳的遊戲列表重新滑入顯示
                     document.querySelector('.main-scroll-area').classList.remove('hidden');
-                    
-                    overlay.classList.remove('active'); 
+                    if (overlay) overlay.classList.remove('active'); 
                     LobbyAudio.playBGM(); 
-                    
-                    if(myUserId) {
-                        db.ref('players/' + myUserId).once('value', (snapshot) => {
-                            const data = snapshot.val();
-                            if(data) { currentUser = data; updateUserUI(); }
-                        });
-                    }
                 }, 500);
+                return;
             }
 
-            // 處理餘額更新
-            if (typeof event.data === 'object' && event.data !== null && event.data.type === 'updateBalance') {
-                if(!currentUser.isGuest) db.ref('players/' + myUserId).update({ balance: event.data.value });
-                else db.ref('players/' + myUserId).update({ balance: event.data.value });
-                
-                if(currentUser) { 
-                    currentUser.balance = event.data.value; 
-                    updateUserUI(); 
-                }
+            // 3. 處理餘額更新
+            if (typeof data === 'object' && data.type === 'updateBalance') {
+                if(myUserId && !currentUser.isGuest) db.ref('players/' + myUserId).update({ balance: data.value });
+                if(currentUser) { currentUser.balance = data.value; updateUserUI(); }
             }
 
-            // ★ 新增：監聽「下注」事件來增加經驗值
-            if (typeof event.data === 'object' && event.data !== null && event.data.type === 'bet') {
-                const betAmount = event.data.amount; 
-                processBetExp(betAmount); 
+            // 4. 監聽下注事件
+            if (typeof data === 'object' && data.type === 'bet') {
+                processBetExp(data.amount); 
             }
         });
 
