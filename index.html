@@ -1590,79 +1590,84 @@ firebase.auth().signInAnonymously()
             });
             gamesArray.sort((a, b) => (a.order || 99) - (b.order || 99));
 
-            // ★ 3. 建立啟動遊戲的通用函式
-           const launchGame = (e, targetUrl, gameName) => {
-            if(typeof LobbyAudio !== 'undefined') LobbyAudio.fadeOut();
+            // ★ 3. 建立啟動遊戲的通用函式 (🌟 新增接收 gameDesc 參數與防錯機制)
+            const launchGame = (e, targetUrl, gameName, gameDesc) => {
+                if(typeof LobbyAudio !== 'undefined') LobbyAudio.fadeOut();
 
-            const card = e.currentTarget.closest('.game-card');
-            if(card && card.classList.contains('launching')) return; 
-            if(card) card.classList.add('launching');
+                const card = e.currentTarget.closest('.game-card');
+                if(card && card.classList.contains('launching')) return; 
+                if(card) card.classList.add('launching');
 
-            const overlay = document.getElementById('transition-overlay');
-            const gameContainer = document.getElementById('game-container');
+                const overlay = document.getElementById('transition-overlay');
+                const gameContainer = document.getElementById('game-container');
 
-            // 1. ⚠️ 終極修復：在點擊「瞬間」立刻建立 iframe！拿取 iOS 聲音憑證！
-            let iframe = document.createElement('iframe');
-            iframe.id = "game-frame";
-            iframe.src = targetUrl;
-            iframe.allow = "autoplay; fullscreen"; // 最關鍵的通關密語
+                let iframe = document.createElement('iframe');
+                iframe.id = "game-frame";
+                iframe.src = targetUrl;
+                iframe.allow = "autoplay; fullscreen";
 
-            const oldFrame = document.getElementById('game-frame');
-            if(oldFrame) oldFrame.remove();
+                const oldFrame = document.getElementById('game-frame');
+                if(oldFrame) oldFrame.remove();
 
-            // 立刻塞入 DOM (此時 gameContainer 預設是隱藏的，玩家看不見)
-            gameContainer.appendChild(iframe);
+                gameContainer.appendChild(iframe);
 
-            // 2. 視覺動畫與設定傳遞：維持原本的延遲邏輯
-            setTimeout(() => {
-                overlay.classList.add('active'); 
-                
                 setTimeout(() => {
-                    // 動畫跑完後，才把裝著遊戲的容器顯示出來
-                    gameContainer.style.display = 'block';
-
-                    // 等待遊戲讀取完畢後，傳送餘額與音效設定資料
-                    iframe.onload = () => { 
-                        if(typeof currentUser !== 'undefined' && currentUser) {
-                            iframe.contentWindow.postMessage({
-                                type: 'initBalance', 
-                                value: currentUser.balance
-                            }, '*');
-
-                            // 保留您寫的：同步大廳的音效開關狀態到遊戲內
-                            const bgmToggle = document.getElementById('bgm-toggle');
-                            const sfxToggle = document.getElementById('sfx-toggle');
-                            const bgmOn = bgmToggle ? bgmToggle.checked : true;
-                            const sfxOn = sfxToggle ? sfxToggle.checked : true;
-                            
-                            iframe.contentWindow.postMessage({
-                                type: 'updateSettings',
-                                music: bgmOn,
-                                sfx: sfxOn
-                            }, '*');
-                        }
-                        setTimeout(() => { overlay.classList.remove('active'); }, 300); 
-                    };
+                    overlay.classList.add('active'); 
                     
-                    setTimeout(() => { if(overlay.classList.contains('active')) overlay.classList.remove('active'); }, 1500);
-                }, 500); 
-            }, 400);
-        };
+                    setTimeout(() => {
+                        gameContainer.style.display = 'block';
+
+                        iframe.onload = () => { 
+                            if(typeof currentUser !== 'undefined' && currentUser) {
+                                iframe.contentWindow.postMessage({
+                                    type: 'initBalance', 
+                                    value: currentUser.balance
+                                }, '*');
+
+                                const bgmToggle = document.getElementById('bgm-toggle');
+                                const sfxToggle = document.getElementById('sfx-toggle');
+                                const bgmOn = bgmToggle ? bgmToggle.checked : true;
+                                const sfxOn = sfxToggle ? sfxToggle.checked : true;
+                                
+                                iframe.contentWindow.postMessage({
+                                    type: 'updateSettings',
+                                    music: bgmOn,
+                                    sfx: sfxOn
+                                }, '*');
+                            }
+
+                            // 🌟 核心修正：延遲 500 毫秒發送，確保遊戲端已經 100% 甦醒！
+                            setTimeout(() => {
+                                if (gameDesc) {
+                                    console.log("【大廳發送】準備將文案傳給遊戲:", gameDesc);
+                                    iframe.contentWindow.postMessage({
+                                        type: 'initPromoText',
+                                        text: gameDesc
+                                    }, '*');
+                                } else {
+                                    console.log("【大廳警告】沒有讀取到遊戲文案！請檢查後台資料庫變數是否叫 game.description");
+                                }
+                            }, 500);
+
+                            setTimeout(() => { overlay.classList.remove('active'); }, 300); 
+                        };
+                        
+                        setTimeout(() => { if(overlay.classList.contains('active')) overlay.classList.remove('active'); }, 1500);
+                    }, 500); 
+                }, 400);
+            };
 
             // ★ 4. 根據 Firebase 資料動態生成卡片
             gamesArray.forEach((game, index) => {
-                // 如果這款遊戲設定為不顯示 (active 為 false 或狀態為 hidden)，就跳過
                 if (game.active === false || game.status === 'hidden') return;
 
-                const iconUrl = game.icon || 'placeholder.png'; // 如果沒填 Icon，給個預設圖防呆
+                const iconUrl = game.icon || 'placeholder.png'; 
                 const isOnline = game.status === 'online' && game.url;
 
-                // 建立主頁卡片
                 const card = document.createElement('div');
                 card.className = 'game-card';
-                card.style.animationDelay = `${index * 0.1}s`; // 讓進場動畫有層次感
+                card.style.animationDelay = `${index * 0.1}s`; 
                 
-                // --- ★ 新增：Hover 遊戲說明的 DOM 結構 ---
                 let hoverHtml = '';
                 if (game.description) {
                     hoverHtml = `
@@ -1677,22 +1682,20 @@ firebase.auth().signInAnonymously()
                     ${hoverHtml}
                 `;
                 
-                // 建立 Slots 面板的小圖示
                 const slot = document.createElement('div');
                 slot.className = 'slot-icon';
                 slot.innerHTML = `<img src="${iconUrl}" class="slot-thumb" onerror="this.src='placeholder.png'">`;
 
-                // 判斷遊戲狀態綁定事件
+                // 🌟 確保玩家點擊時，把 game.description 傳遞給 launchGame
                 if (isOnline) {
-                    card.onclick = (e) => launchGame(e, game.url, game.name);
-                    slot.onclick = (e) => launchGame(e, game.url, game.name);
+                    card.onclick = (e) => launchGame(e, game.url, game.name, game.description);
+                    slot.onclick = (e) => launchGame(e, game.url, game.name, game.description);
                     slot.style.cursor = 'pointer';
                 } else {
-                    // 如果不是 online (例如 maintenance)，變暗並顯示 Coming Soon
                     card.style.filter = 'grayscale(0) brightness(0.7)';
                     slot.style.filter = 'grayscale(0) brightness(0.7)';
-                    card.onclick = (e) => launchGame(e, 'coming_soon.html', 'Coming Soon');
-                    slot.onclick = (e) => launchGame(e, 'coming_soon.html', 'Coming Soon');
+                    card.onclick = (e) => launchGame(e, 'coming_soon.html', 'Coming Soon', '');
+                    slot.onclick = (e) => launchGame(e, 'coming_soon.html', 'Coming Soon', '');
                     slot.style.cursor = 'pointer';
                 }
 
