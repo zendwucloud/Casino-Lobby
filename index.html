@@ -1618,26 +1618,28 @@ firebase.auth().signInAnonymously()
                         gameContainer.style.display = 'block';
 
                         iframe.onload = () => { 
-                            if(typeof currentUser !== 'undefined' && currentUser) {
-                                iframe.contentWindow.postMessage({
-                                    type: 'initBalance', 
-                                    value: currentUser.balance
-                                }, '*');
-
-                                const bgmToggle = document.getElementById('bgm-toggle');
-                                const sfxToggle = document.getElementById('sfx-toggle');
-                                const bgmOn = bgmToggle ? bgmToggle.checked : true;
-                                const sfxOn = sfxToggle ? sfxToggle.checked : true;
-                                
-                                iframe.contentWindow.postMessage({
-                                    type: 'updateSettings',
-                                    music: bgmOn,
-                                    sfx: sfxOn
-                                }, '*');
-                            }
-
-                            // 🌟 核心修正：延遲 500 毫秒發送，確保遊戲端已經 100% 甦醒！
+                            // 🌟 核心修正：將「餘額、設定、文案」全部包在 500 毫秒的延遲中，確保遊戲端 100% 準備好接收！
                             setTimeout(() => {
+                                // 1. 發送玩家餘額與音效設定
+                                if(typeof currentUser !== 'undefined' && currentUser) {
+                                    iframe.contentWindow.postMessage({
+                                        type: 'initBalance', 
+                                        value: currentUser.balance
+                                    }, '*');
+
+                                    const bgmToggle = document.getElementById('bgm-toggle');
+                                    const sfxToggle = document.getElementById('sfx-toggle');
+                                    const bgmOn = bgmToggle ? bgmToggle.checked : true;
+                                    const sfxOn = sfxToggle ? sfxToggle.checked : true;
+                                    
+                                    iframe.contentWindow.postMessage({
+                                        type: 'updateSettings',
+                                        music: bgmOn,
+                                        sfx: sfxOn
+                                    }, '*');
+                                }
+
+                                // 2. 發送動態說明文案
                                 if (gameDesc) {
                                     console.log("【大廳發送】準備將文案傳給遊戲:", gameDesc);
                                     iframe.contentWindow.postMessage({
