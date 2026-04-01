@@ -833,6 +833,7 @@ firebase.auth().signInAnonymously()
 
 
         // --- 2. User Logic with Firebase (全新帳號密碼版) ---
+        let activeGameDesc = ""; // 🌟 搬到全域變數：紀錄當前文案
         let currentUser = null;
         let myUserId = localStorage.getItem('casino_firebase_uid');
         let guestSessionId = sessionStorage.getItem('casino_guest_id');
@@ -1600,9 +1601,6 @@ firebase.auth().signInAnonymously()
             });
             gamesArray.sort((a, b) => (a.order || 99) - (b.order || 99));
 
-            // 🌟 1. 先在外部定義一個變數，紀錄當前開啟遊戲的文案
-            let activeGameDesc = "";
-
             const launchGame = (e, targetUrl, gameName, gameDesc) => {
                 if(typeof LobbyAudio !== 'undefined') LobbyAudio.fadeOut();
 
@@ -1650,39 +1648,6 @@ firebase.auth().signInAnonymously()
                     }, 500); 
                 }, 400);
             };
-
-            // 🌟 3. 監聽器放在 launchGame 外面，且正確處理「補發」與「關閉」
-            window.addEventListener('message', (event) => {
-                const data = event.data;
-
-                // 處理重整補發
-                if (data && data.type === 'requestInitData') {
-                    const iframe = document.getElementById('game-frame');
-                    if (iframe && iframe.contentWindow && currentUser) {
-                        console.log("【大廳補發】同步數據中...");
-                        iframe.contentWindow.postMessage({ type: 'initBalance', value: currentUser.balance }, '*');
-                        iframe.contentWindow.postMessage({ type: 'initPromoText', text: activeGameDesc }, '*');
-                    }
-                    return;
-                }
-
-                // 處理關閉遊戲 (恢復原本遺失的判斷)
-                if (typeof data === 'string' && data === 'closeGame') {
-                    const overlay = document.getElementById('transition-overlay');
-                    const gameContainer = document.getElementById('game-container');
-                    overlay.classList.add('active');
-
-                    setTimeout(() => {
-                        gameContainer.style.display = 'none';
-                        const iframe = document.getElementById('game-frame');
-                        if(iframe) iframe.remove(); 
-                        document.querySelectorAll('.game-card.launching').forEach(c => c.classList.remove('launching'));
-                        document.querySelector('.main-scroll-area').classList.remove('hidden');
-                        overlay.classList.remove('active'); 
-                        LobbyAudio.playBGM(); 
-                    }, 500);
-                }
-            });
 
             // ★ 4. 根據 Firebase 資料動態生成卡片
             gamesArray.forEach((game, index) => {
