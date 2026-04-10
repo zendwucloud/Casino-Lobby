@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Casino God Mode V3.2 (Admin)</title>
+    <style>
+        /* CSS 樣式與上一版相同，保持俐落的暗黑風格 */
+        :root {
+            --bg: #0f172a; --panel: #111827; --panel-2: #1f2937;
+            --line: #334155; --text: #e5e7eb; --muted: #94a3b8;
+            --accent: #ffd700; --danger: #ef4444; --success: #22c55e;
+        }
+        * { box-sizing: border-box; }
+        body { 
+            background: linear-gradient(180deg, #020617 0%, #111827 100%); 
+            color: var(--text); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0; padding: 20px; 
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        
+        .header { 
+            display: flex; justify-content: space-between; align-items: center; 
+            border-bottom: 2px solid var(--accent); padding-bottom: 15px; margin-bottom: 20px; 
+        }
+        h1 { margin: 0; color: var(--accent); text-shadow: 0 0 10px rgba(255, 215, 0, 0.3); display: flex; align-items: center; gap: 15px;}
+        .live-badge { 
+            background: var(--danger); color: white; padding: 5px 10px; 
+            border-radius: 5px; font-weight: bold; font-size: 0.8rem; 
+            animation: pulse 1.5s infinite; letter-spacing: 1px;
+        }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
+        
+        .grid { display: grid; grid-template-columns: 380px 1fr; gap: 20px; }
+        .panel { 
+            background: rgba(17, 24, 39, 0.95); border: 1px solid var(--line); 
+            border-radius: 12px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .panel h2 { margin-top: 0; font-size: 1.2rem; color: #fff; border-bottom: 1px solid var(--line); padding-bottom: 10px; }
+
+        .broadcast-box { display: flex; gap: 10px; margin-bottom: 20px; }
+        .broadcast-input { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid var(--line); background: #020617; color: #fff; font-size: 1rem;}
+        .btn-broadcast { background: #0ea5e9; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s;}
+        .btn-broadcast:hover { filter: brightness(1.2); }
+
+        .player-list-container { max-height: 70vh; overflow-y: auto; padding-right: 5px;}
+        .player-card { 
+            background: rgba(255, 255, 255, 0.03); border: 1px solid var(--line); 
+            border-radius: 10px; padding: 15px; margin-bottom: 12px; 
+            display: flex; flex-direction: column; gap: 10px; transition: all 0.2s;
+        }
+        .player-card:hover { border-color: var(--accent); background: rgba(255, 215, 0, 0.05); }
+        .p-top { display: flex; justify-content: space-between; align-items: flex-start; }
+        .p-info h3 { margin: 0 0 5px 0; font-size: 1.1rem; color: #fff;}
+        .p-info .uid { color: var(--muted); font-size: 0.75rem; font-family: monospace; }
+        .p-info .vip { background: #333; color: var(--accent); padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; border: 1px solid #555; }
+        .p-balance { text-align: right; }
+        .balance-num { font-size: 1.3rem; font-weight: bold; color: var(--success); }
+        .balance-label { font-size: 0.7rem; color: var(--muted); }
+        .p-actions { display: flex; gap: 8px; }
+        input.amount-input { flex: 1; background: #020617; border: 1px solid var(--line); color: #fff; padding: 8px; border-radius: 6px; text-align: center; }
+        button.btn-action { cursor: pointer; padding: 8px 12px; border-radius: 6px; border: none; font-weight: bold; font-size: 0.85rem;}
+        button.btn-action:active { transform: scale(0.95); }
+        .btn-add { background: #16a34a; color: white; }
+        .btn-set { background: #d97706; color: white; }
+
+        .machine-list-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;}
+        .machine-select { width: 100%; padding: 10px; background: #020617; border: 1px solid var(--line); color: #fff; border-radius: 8px; font-size: 1rem; margin-bottom: 20px;}
+        
+        .form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+        .field { display: flex; flex-direction: column; gap: 6px; }
+        .field.span-2 { grid-column: span 2; }
+        .field.full { grid-column: 1 / -1; }
+        .field label { color: var(--muted); font-size: 0.85rem; }
+        .field input, .field select, .field textarea { 
+            width: 100%; background: #020617; color: var(--text); 
+            border: 1px solid var(--line); border-radius: 8px; padding: 10px; font-size: 0.95rem; 
+        }
+        .field input:focus, .field select:focus, .field textarea:focus { outline: none; border-color: var(--accent); }
+        .field textarea { resize: vertical; min-height: 80px; }
+        
+        .check-row { display: flex; flex-wrap: wrap; gap: 15px; padding-top: 5px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px;}
+        .check-row label { display: inline-flex; align-items: center; gap: 8px; font-size: 0.9rem; cursor: pointer; color: #fff;}
+        .check-row input[type="checkbox"] { width: auto; transform: scale(1.2); accent-color: var(--accent);}
+
+        .form-actions { display: flex; gap: 10px; margin-top: 25px; border-top: 1px solid var(--line); padding-top: 20px;}
+        .btn-save-game { background: var(--success); color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1rem; flex: 1;}
+        .btn-new-game { background: #2563eb; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1rem;}
+        .btn-delete-game { background: var(--danger); color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1rem;}
+        
+        #status-msg { 
+            position: fixed; top: 20px; right: 20px; padding: 12px 25px; 
+            border-radius: 8px; background: rgba(34, 197, 94, 0.9); color: #fff; 
+            display: none; z-index: 1000; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        }
+
+        @media (max-width: 1024px) {
+            .grid { grid-template-columns: 1fr; }
+            .form-grid { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 600px) {
+            .form-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div id="status-msg">操作成功</div>
+    
+    <div class="container">
+        <div class="header">
+            <h1>⚡ Casino Admin (God Mode) <span style="font-size: 1rem; color: var(--muted); font-weight: normal;">V3.2</span></h1>
+            <div class="live-badge">● FIREBASE CONNECTED</div>
+        </div>
+
+        <div class="panel" style="margin-bottom: 20px; padding: 15px;">
+            <div class="broadcast-box" style="margin: 0;">
+                <input type="text" id="ticker-input" class="broadcast-input" placeholder="輸入跑馬燈文字... (例如: 恭喜玩家贏得 1000 萬大獎!)">
+                <button class="btn-broadcast" onclick="sendBroadcast()">📢 發送全頻廣播</button>
+            </div>
+        </div>
+
+        <div class="panel" style="margin-bottom: 20px; padding: 15px;">
+            <h2 style="margin-top: 0; font-size: 1.1rem; color: #0ea5e9; border-bottom: 1px solid var(--line); padding-bottom: 10px; margin-bottom: 15px;">
+                ⚙️ 系統初始參數設定
+            </h2>
+            <div style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap;">
+                <div class="field" style="flex: 1; min-width: 200px;">
+                    <label>訪客登入初始金額 (Guest)</label>
+                    <input id="setting-guest-balance" type="number" class="broadcast-input" style="width: 100%; margin: 0; padding: 10px;" placeholder="例如: 10000" />
+                </div>
+                <div class="field" style="flex: 1; min-width: 200px;">
+                    <label>正式註冊初始金額 (Register)</label>
+                    <input id="setting-reg-balance" type="number" class="broadcast-input" style="width: 100%; margin: 0; padding: 10px;" placeholder="例如: 100000" />
+                </div>
+                <button class="btn-broadcast" style="background: #8a2be2; flex: 0.5; min-width: 150px; padding: 11px;" onclick="saveSystemSettings()">
+                    💾 儲存系統設定
+                </button>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="panel">
+                <h2>👥 線上玩家資金管理</h2>
+                <div id="player-list" class="player-list-container">
+                    <div style="text-align:center; color:var(--muted); margin-top:50px;">連線中...</div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="machine-list-top">
+                    <h2 style="border:none; padding:0; margin:0;">🎰 遊戲機台參數管理</h2>
+                </div>
+                
+                <select id="game-select" class="machine-select" onchange="loadSelectedGame()">
+                    <option value="">載入中...</option>
+                </select>
+
+                <div class="form-grid" id="game-form">
+                    <div class="field full">
+                        <label>Game ID (Firebase 節點金鑰，建立後不可改)</label>
+                        <input id="g-id" placeholder="例如: dragon-treasure" />
+                    </div>
+                    <div class="field span-2">
+                        <label>遊戲名稱 (Name)</label>
+                        <input id="g-name" placeholder="Dragon's Treasure" />
+                    </div>
+                    <div class="field">
+                        <label>排序 (Order)</label>
+                        <input id="g-order" type="number" placeholder="1" />
+                    </div>
+                    
+                    <div class="field full">
+                        <label>遊戲連結 (Game URL)</label>
+                        <input id="g-url" placeholder="https://..." />
+                    </div>
+                    
+                    <div class="field full">
+                        <label>Lobby 圖片路徑 (Icon URL)</label>
+                        <input id="g-icon" placeholder="/assets/images/dragon-icon.png" />
+                    </div>
+
+                    <div class="field full" style="border-top: 1px dashed var(--line); margin-top: 10px; padding-top: 15px;">
+                        <label style="color:#fff; font-size:1rem;">核心設定與前端顯示</label>
+                    </div>
+
+                    <div class="field">
+                        <label>底注 (Base Bet)</label>
+                        <input id="g-betBase" type="number" value="100" />
+                    </div>
+                    <div class="field">
+                        <label>買 Bonus 倍數 (x)</label>
+                        <input id="g-buyFeatureMultiplier" type="number" value="200" />
+                    </div>
+                    <div class="field">
+                        <label>狀態 (Status)</label>
+                        <select id="g-status">
+                            <option value="online">online (上線)</option>
+                            <option value="maintenance">maintenance (維護)</option>
+                            <option value="hidden">hidden (隱藏)</option>
+                        </select>
+                    </div>
+
+                    <div class="field full">
+                        <label>遊戲說明文案 (Lobby Hover 顯示內容)</label>
+                        <textarea id="g-description" placeholder="輸入要在大廳圖示上懸停顯示的說明。例如：最高15次免費遊戲 / 理論 RTP 96.5%"></textarea>
+                    </div>
+
+                    <div class="field full">
+                        <label>大廳顯示開關</label>
+                        <div class="check-row" style="padding: 8px;">
+                            <label><input id="g-active" type="checkbox" checked /> 啟用 (Active)</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button class="btn-new-game" onclick="prepareNewGame()">＋ 新增機台</button>
+                    <button class="btn-save-game" onclick="saveGameConfig()">💾 儲存至 Firebase</button>
+                    <button class="btn-delete-game" onclick="deleteGameConfig()">🗑️ 刪除</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    
+    <script>
+        // 你的 Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyA13JH6n_YRY2Rtiuq2u3iN4mEe5cQL8Bo",
+            authDomain: "casino-lobby-123f5.firebaseapp.com",
+            projectId: "casino-lobby-123f5",
+            storageBucket: "casino-lobby-123f5.firebasestorage.app",
+            messagingSenderId: "433397567788",
+            appId: "1:433397567788:web:197a552bba01b186dedc89"
+        };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        let gamesData = {};
+
+        // 匿名登入 (請確保 Firebase Console 已開啟匿名登入權限)
+        firebase.auth().signInAnonymously().then(() => {
+            console.log("Admin Connected");
+        }).catch((error) => {
+            alert("權限不足，無法連線資料庫");
+        });
+
+        // -----------------------------------------------------
+        // 🌟 1. 系統參數設定邏輯 (新加入)
+        // -----------------------------------------------------
+        db.ref('system/settings').on('value', (snapshot) => {
+            const settings = snapshot.val() || {};
+            document.getElementById('setting-guest-balance').value = settings.guestInitialBalance !== undefined ? settings.guestInitialBalance : 10000;
+            document.getElementById('setting-reg-balance').value = settings.registerInitialBalance !== undefined ? settings.registerInitialBalance : 100000;
+        });
+
+        window.saveSystemSettings = function() {
+            const guestBal = parseFloat(document.getElementById('setting-guest-balance').value) || 0;
+            const regBal = parseFloat(document.getElementById('setting-reg-balance').value) || 0;
+            
+            // 使用 update 避免覆蓋掉 system/settings 裡面可能存在的其他參數
+            db.ref('system/settings').update({
+                guestInitialBalance: guestBal,
+                registerInitialBalance: regBal
+            }).then(() => {
+                showToast("✅ 系統參數已成功更新！");
+            }).catch((error) => {
+                alert("儲存失敗: " + error.message);
+            });
+        };
+
+        // -----------------------------------------------------
+        // 🌟 2. 玩家資金管理
+        // -----------------------------------------------------
+        db.ref('players').on('value', (snapshot) => {
+            const listDiv = document.getElementById('player-list');
+            listDiv.innerHTML = '';
+            const data = snapshot.val();
+            if (!data) { listDiv.innerHTML = '<div style="text-align:center; padding:20px; color:#888;">目前沒有玩家</div>'; return; }
+            Object.entries(data).forEach(([uid, player]) => {
+                const card = document.createElement('div');
+                card.className = 'player-card';
+                card.innerHTML = `
+                    <div class="p-top">
+                        <div class="p-info"><h3>${player.name || 'Unknown'}</h3><div class="uid">${uid}</div><span class="vip">VIP.${player.vip || 1}</span></div>
+                        <div class="p-balance"><div class="balance-num">${(player.balance || 0).toLocaleString()}</div><div class="balance-label">CREDITS</div></div>
+                    </div>
+                    <div class="p-actions">
+                        <input type="number" id="input-${uid}" class="amount-input" placeholder="輸入金額" step="1000">
+                        <button class="btn-action btn-add" onclick="modifyBalance('${uid}', 'add')">+ 加值</button>
+                        <button class="btn-action btn-set" onclick="modifyBalance('${uid}', 'set')">= 覆蓋</button>
+                    </div>
+                `;
+                listDiv.appendChild(card);
+            });
+        });
+
+        window.modifyBalance = function(uid, mode) {
+            const input = document.getElementById(`input-${uid}`);
+            const amount = parseFloat(input.value);
+            if (isNaN(amount)) { alert("請輸入有效的數字！"); return; }
+            const userRef = db.ref('players/' + uid + '/balance');
+            if (mode === 'add') {
+                userRef.transaction((current) => (current || 0) + amount, (e,c) => { if(c) showToast(`已增加 ${amount}`); });
+            } else if (mode === 'set') {
+                userRef.set(amount, (e) => { if(!e) showToast(`已設定為 ${amount}`); });
+            }
+            input.value = '';
+        };
+
+        // -----------------------------------------------------
+        // 🌟 3. 跑馬燈廣播
+        // -----------------------------------------------------
+        window.sendBroadcast = function() {
+            const msg = document.getElementById('ticker-input').value;
+            if(!msg) return;
+            db.ref('system/ticker').set(msg);
+            showToast("跑馬燈已發送！");
+            setTimeout(() => { db.ref('system/ticker').set(null); }, 4000); 
+            document.getElementById('ticker-input').value = '';
+        };
+
+        // -----------------------------------------------------
+        // 🌟 4. 遊戲機台參數管理
+        // -----------------------------------------------------
+        db.ref('system/games').on('value', (snapshot) => {
+            gamesData = snapshot.val() || {};
+            updateGameSelect();
+        });
+
+        function updateGameSelect() {
+            const select = document.getElementById('game-select');
+            const currentVal = select.value;
+            select.innerHTML = '<option value="new">-- 選擇機台進行編輯 --</option>';
+            
+            const sortedGames = Object.entries(gamesData).sort((a, b) => (a[1].order || 99) - (b[1].order || 99));
+            
+            sortedGames.forEach(([id, game]) => {
+                const opt = document.createElement('option');
+                opt.value = id;
+                const statusIcon = game.active ? '🟢' : '🔴';
+                opt.textContent = `${statusIcon} [${game.order || '-'}] ${game.name || id}`;
+                select.appendChild(opt);
+            });
+
+            if (gamesData[currentVal]) {
+                select.value = currentVal;
+            } else {
+                prepareNewGame();
+            }
+        }
+
+        window.loadSelectedGame = function() {
+            const id = document.getElementById('game-select').value;
+            if (id === 'new' || !id) {
+                prepareNewGame();
+                return;
+            }
+
+            const game = gamesData[id];
+            document.getElementById('g-id').value = id;
+            document.getElementById('g-id').disabled = true;
+            document.getElementById('g-name').value = game.name || '';
+            document.getElementById('g-url').value = game.url || '';
+            document.getElementById('g-icon').value = game.icon || ''; 
+            document.getElementById('g-order').value = game.order || '';
+            document.getElementById('g-status').value = game.status || 'online';
+            document.getElementById('g-description').value = game.description || ''; 
+            document.getElementById('g-active').checked = !!game.active;
+            
+            const config = game.config || {};
+            document.getElementById('g-betBase').value = config.betBase || 100;
+            document.getElementById('g-buyFeatureMultiplier').value = config.buyFeatureMultiplier || 200;
+        };
+
+        window.prepareNewGame = function() {
+            document.getElementById('game-select').value = 'new';
+            document.getElementById('g-id').value = '';
+            document.getElementById('g-id').disabled = false;
+            document.getElementById('g-name').value = '';
+            document.getElementById('g-url').value = '';
+            document.getElementById('g-icon').value = ''; 
+            document.getElementById('g-order').value = Object.keys(gamesData).length + 1;
+            document.getElementById('g-status').value = 'hidden';
+            document.getElementById('g-description').value = ''; 
+            document.getElementById('g-active').checked = false;
+            
+            document.getElementById('g-betBase').value = 100;
+            document.getElementById('g-buyFeatureMultiplier').value = 200;
+        };
+
+        window.saveGameConfig = function() {
+            const id = document.getElementById('g-id').value.trim();
+            if (!id) { alert("請填寫 Game ID！"); return; }
+
+            const gameData = {
+                name: document.getElementById('g-name').value,
+                url: document.getElementById('g-url').value,
+                icon: document.getElementById('g-icon').value, 
+                description: document.getElementById('g-description').value, 
+                order: Number(document.getElementById('g-order').value) || 99,
+                status: document.getElementById('g-status').value,
+                active: document.getElementById('g-active').checked,
+                config: {
+                    betBase: Number(document.getElementById('g-betBase').value) || 100,
+                    buyFeatureMultiplier: Number(document.getElementById('g-buyFeatureMultiplier').value) || 200
+                }
+            };
+
+            db.ref('system/games/' + id).set(gameData).then(() => {
+                showToast(`機台 [${gameData.name}] 設定已儲存！`);
+                document.getElementById('game-select').value = id;
+            }).catch(e => alert("儲存失敗: " + e.message));
+        };
+
+        window.deleteGameConfig = function() {
+            const id = document.getElementById('g-id').value;
+            if (!id || id === 'new') return;
+            
+            const gameName = document.getElementById('g-name').value;
+            if (confirm(`⚠️ 警告：確定要從資料庫徹底刪除機台「${gameName}」嗎？`)) {
+                db.ref('system/games/' + id).remove().then(() => {
+                    showToast(`已刪除機台 [${gameName}]`);
+                    prepareNewGame();
+                });
+            }
+        };
+
+        function showToast(msg) {
+            const el = document.getElementById('status-msg');
+            el.innerText = msg; el.style.display = 'block';
+            setTimeout(() => { el.style.display = 'none'; }, 2500);
+        }
+    </script>
+</body>
+</html>
