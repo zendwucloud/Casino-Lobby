@@ -5,6 +5,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Casino God Mode V3.2 (Admin)</title>
     <style>
+        /* --- 玩家詳細資訊 Modal 樣式 --- */
+.modal-overlay {
+    display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.8); z-index: 2000; justify-content: center; align-items: center;
+    backdrop-filter: blur(5px);
+}
+.modal-content {
+    background: var(--panel); border: 1px solid var(--accent); border-radius: 12px;
+    width: 90%; max-width: 600px; padding: 25px; box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+    color: var(--text); animation: slideIn 0.3s ease-out;
+}
+@keyframes slideIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+.modal-header { 
+    display: flex; justify-content: space-between; align-items: center; 
+    border-bottom: 1px solid var(--line); padding-bottom: 15px; margin-bottom: 20px; 
+}
+.modal-header h2 { margin: 0; color: #fff; font-size: 1.4rem; }
+.btn-close { background: none; border: none; color: var(--muted); font-size: 1.8rem; cursor: pointer; transition: 0.2s; }
+.btn-close:hover { color: var(--danger); }
+
+.stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+.stat-box { background: #020617; padding: 15px; border-radius: 8px; border: 1px solid var(--line); }
+.stat-box label { color: var(--muted); font-size: 0.85rem; display: block; margin-bottom: 8px; }
+.stat-box .val { font-size: 1.2rem; font-weight: bold; color: var(--success); }
+.stat-box .val.text { color: #fff; font-size: 1rem; font-weight: normal; }
+.stat-box .val.danger { color: var(--danger); }
+.stat-box .val.accent { color: var(--accent); }
+
+.btn-info { background: #6366f1; color: white; }
+.btn-info:hover { filter: brightness(1.2); }
         /* CSS 樣式與上一版相同，保持俐落的暗黑風格 */
         :root {
             --bg: #0f172a; --panel: #111827; --panel-2: #1f2937;
@@ -221,6 +252,54 @@
             </div>
         </div>
     </div>
+    <div id="player-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>👤 玩家詳細資訊</h2>
+                <button class="btn-close" onclick="closePlayerModal()">&times;</button>
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+                <div style="font-size: 1.2rem; color: #fff; font-weight: bold;" id="m-name">載入中...</div>
+                <div style="color: var(--muted); font-size: 0.8rem; font-family: monospace;">UID: <span id="m-uid">...</span></div>
+            </div>
+
+            <div class="stat-grid">
+                <div class="stat-box">
+                    <label>📅 創建帳號時間</label>
+                    <div class="val text" id="m-created">-</div>
+                </div>
+                <div class="stat-box">
+                    <label>⏱️ 最後上線時間</label>
+                    <div class="val text" id="m-login">-</div>
+                </div>
+                <div class="stat-box" style="grid-column: span 2;">
+                    <label>🎰 最常玩遊戲</label>
+                    <div class="val text accent" id="m-fav-game">-</div>
+                </div>
+                <div class="stat-box">
+                <label>🎰 總遊玩局數</label>
+                <div class="val text" id="m-spins">0</div>
+            </div>
+                <div class="stat-box">
+                    <label>💸 總押注 (Total Bet)</label>
+                    <div class="val" id="m-bet">0</div>
+                </div>
+                <div class="stat-box">
+                    <label>💰 總贏分 (Total Win)</label>
+                    <div class="val" id="m-won">0</div>
+                </div>
+                <div class="stat-box">
+                    <label>📉 總輸分 (Total Lost)</label>
+                    <div class="val danger" id="m-lost">0</div>
+                </div>
+                <div class="stat-box">
+                    <label>📊 淨利潤 (Net RTP 狀態)</label>
+                    <div class="val" id="m-net">0</div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -284,16 +363,17 @@
                 const card = document.createElement('div');
                 card.className = 'player-card';
                 card.innerHTML = `
-                    <div class="p-top">
-                        <div class="p-info"><h3>${player.name || 'Unknown'}</h3><div class="uid">${uid}</div><span class="vip">VIP.${player.vip || 1}</span></div>
-                        <div class="p-balance"><div class="balance-num">${(player.balance || 0).toLocaleString()}</div><div class="balance-label">CREDITS</div></div>
-                    </div>
-                    <div class="p-actions">
-                        <input type="number" id="input-${uid}" class="amount-input" placeholder="輸入金額" step="1000">
-                        <button class="btn-action btn-add" onclick="modifyBalance('${uid}', 'add')">+ 加值</button>
-                        <button class="btn-action btn-set" onclick="modifyBalance('${uid}', 'set')">= 覆蓋</button>
-                    </div>
-                `;
+    <div class="p-top">
+        <div class="p-info"><h3>${player.name || 'Unknown'}</h3><div class="uid">${uid}</div><span class="vip">VIP.${player.vip || 1}</span></div>
+        <div class="p-balance"><div class="balance-num">${(player.balance || 0).toLocaleString()}</div><div class="balance-label">CREDITS</div></div>
+    </div>
+    <div class="p-actions" style="margin-bottom: 8px;">
+        <input type="number" id="input-${uid}" class="amount-input" placeholder="輸入金額" step="1000">
+        <button class="btn-action btn-add" onclick="modifyBalance('${uid}', 'add')">+ 加值</button>
+        <button class="btn-action btn-set" onclick="modifyBalance('${uid}', 'set')">= 覆蓋</button>
+    </div>
+    <button class="btn-action btn-info" style="width: 100%; padding: 10px;" onclick="openPlayerModal('${uid}')">ℹ️ 查看詳細資訊</button>
+`;
                 listDiv.appendChild(card);
             });
         });
@@ -434,6 +514,61 @@
             el.innerText = msg; el.style.display = 'block';
             setTimeout(() => { el.style.display = 'none'; }, 2500);
         }
+        // -----------------------------------------------------
+        // 🌟 玩家詳細資訊 Modal 邏輯
+        // -----------------------------------------------------
+        window.openPlayerModal = function(uid) {
+            document.getElementById('player-modal').style.display = 'flex';
+            document.getElementById('m-name').innerText = '載入中...';
+            
+            db.ref('players/' + uid).once('value').then((snapshot) => {
+                const p = snapshot.val();
+                if (!p) return;
+
+                // 將 Timestamp 轉換為容易閱讀的日期格式
+                const formatTime = (ts) => ts ? new Date(ts).toLocaleString('zh-TW') : '無紀錄';
+
+                document.getElementById('m-name').innerText = p.name || 'Unknown';
+                document.getElementById('m-uid').innerText = uid;
+                
+                // 🌟 這裡換成你 Firebase 裡真正的欄位名稱
+                document.getElementById('m-created').innerText = formatTime(p.joinedAt);
+                document.getElementById('m-login').innerText = formatTime(p.lastLoginDate);
+                
+                document.getElementById('m-fav-game').innerText = p.favoriteGame || '尚未紀錄';
+                
+                const totalBet = p.totalBet || 0;
+                const totalWon = p.totalWon || 0;
+                
+                // 輸分可以用算的：如果總押注大於總贏分，那相減就是輸掉的錢
+                const totalLost = totalBet > totalWon ? (totalBet - totalWon) : 0; 
+                const net = totalWon - totalBet;
+
+                document.getElementById('m-bet').innerText = totalBet.toLocaleString();
+                document.getElementById('m-won').innerText = totalWon.toLocaleString();
+                document.getElementById('m-lost').innerText = totalLost.toLocaleString();
+                
+                // ✅ 正確的位置！確保 p 已經抓到資料後再執行這行
+                document.getElementById('m-spins').innerText = (p.totalSpins || 0).toLocaleString();
+                
+                const netEl = document.getElementById('m-net');
+                netEl.innerText = net.toLocaleString();
+                netEl.className = 'val ' + (net >= 0 ? '' : 'danger'); // 輸錢顯示紅色
+
+            }).catch(error => {
+                console.error("讀取玩家資料失敗:", error);
+                alert("讀取資料失敗");
+            });
+        };
+
+        window.closePlayerModal = function() {
+            document.getElementById('player-modal').style.display = 'none';
+        };
+
+        // 點擊 Modal 外圍關閉
+        document.getElementById('player-modal').addEventListener('click', function(e) {
+            if (e.target === this) closePlayerModal();
+        });
     </script>
 </body>
 </html>

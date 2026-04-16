@@ -1728,7 +1728,8 @@ firebase.auth().signInAnonymously()
             const updates = {
                 exp: currentExp,
                 vip: currentVip,
-                totalSpins: totalSpins // ★ 寫入資料庫
+                totalSpins: totalSpins, // ★ 寫入資料
+                totalBet: firebase.database.ServerValue.increment(betAmount)
             };
 
             // ★★★ 新增：如果是升級狀態，順便紀錄當下時間 ★★★
@@ -1979,6 +1980,14 @@ firebase.auth().signInAnonymously()
             // 4. 監聽下注事件
             if (typeof data === 'object' && data.type === 'bet') {
                 processBetExp(data.amount); 
+            }
+            if (typeof data === 'object' && data.type === 'win') {
+                if (myUserId && !currentUser.isGuest) {
+                    db.ref('players/' + myUserId).update({
+                        // 利用 increment 把贏的錢累加到 totalWon 欄位
+                        totalWon: firebase.database.ServerValue.increment(data.amount)
+                    });
+                }
             }
         });
 
