@@ -221,6 +221,24 @@
             transition: opacity 0.3s ease, transform 0.3s ease;
             touch-action: pan-y; 
         }
+        /* --- NEW 標籤緞帶 --- */
+        .new-ribbon {
+        position: absolute;
+        top: 15px;
+        left: -35px;
+        background: linear-gradient(180deg, #ff0000, #cc0000);
+        color: #ffffff;
+        font-size: 1.6vh;
+        font-weight: 900;
+        padding: 5px 40px;
+        transform: rotate(-45deg);
+        z-index: 20;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.5);
+        text-align: center;
+        letter-spacing: 1px;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+        border: 1px solid #ff4444;
+        }
         .main-scroll-area::-webkit-scrollbar { display: none; }
         .main-scroll-area.hidden .game-card:nth-child(odd) { transform: translateX(-120%); opacity: 0; }
         .main-scroll-area.hidden .game-card:nth-child(even) { transform: translateX(120%); opacity: 0; }
@@ -1666,10 +1684,19 @@ firebase.auth().signInAnonymously()
                     `;
                 }
 
+                // 👇 === 新增邏輯：判斷是否為第一個遊戲 (index === 0) ===
+                let newBadgeHtml = '';
+                if (index === 0) {
+                    newBadgeHtml = `<div class="new-ribbon">NEW!</div>`;
+                }
+
+                // 將 newBadgeHtml 加入到 card 的 HTML 結構中
                 card.innerHTML = `
+                    ${newBadgeHtml}
                     <img src="${iconUrl}" class="game-img" alt="${game.name}" onerror="this.src='placeholder.png'">
                     ${hoverHtml}
                 `;
+                // 👆 ==========================================
                 
                 const slot = document.createElement('div');
                 slot.className = 'slot-icon';
