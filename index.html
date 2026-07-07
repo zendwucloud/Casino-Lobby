@@ -595,6 +595,27 @@
         <main class="main-scroll-area">
              </main>
 
+             <div id="arcade-panel" class="dashboard-panel gradient-border-box">
+    <div class="panel-header">
+        <div class="tab-item active">Arcade 捕魚機</div>
+    </div>
+    
+    <div class="panel-content" style="padding-top: 25px;">
+        <div class="game-card" style="opacity: 1; transform: translateY(0); animation: none; width: 90%; margin: 0 auto; cursor: pointer;" onclick="alert('準備載入：金鯊捕魚')">
+            <div class="new-ribbon">HOT!</div>
+            <img src="game901.png" class="game-img" alt="金鯊捕魚" onerror="this.src='placeholder.png'">
+            
+            <div class="game-hover-info" style="opacity: 1;">
+                <div class="hover-text" style="font-size: 2vh;">🐟 金鯊捕魚<br><span style="font-size: 1.4vh; color: #ffd700;">深海爆金，一炮致富！</span></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="panel-footer">
+        <div class="close-gold-btn" id="close-arcade-btn">CLOSE</div>
+    </div>
+</div>
+
         <div id="slots-panel" class="dashboard-panel gradient-border-box">
             <div class="panel-header">
                 <div class="tab-item active">全部</div>
@@ -786,27 +807,31 @@
         </div>
 
         <nav class="bottom-nav gradient-border-box">
-            <div class="nav-item active" id="nav-home">
-                <img src="home.png" class="nav-icon" alt="Home">
-                <span class="nav-label">Home</span>
-            </div>
-            <div class="nav-item" id="nav-slots">
-                <img src="games.png" class="nav-icon" alt="Slots">
-                <span class="nav-label">Slots</span>
-            </div>
-            <div class="nav-item" id="nav-rankings">
-                <img src="Rankings.png" class="nav-icon" alt="Rankings">
-                <span class="nav-label">Rank</span>
-            </div>
-            <div class="nav-item" id="nav-rewards">
-                <img src="events.png" class="nav-icon" alt="Rewards">
-                <span class="nav-label">Rewards</span>
-            </div>
-            <div class="nav-item" id="nav-profile">
-                <img src="profile.png" class="nav-icon" alt="Profile">
-                <span class="nav-label">Profile</span>
-            </div>
-        </nav>
+    <div class="nav-item" id="nav-slots">
+        <img src="slots.png" class="nav-icon" alt="Slots">
+        <span class="nav-label">Slots</span>
+    </div>
+    
+    <div class="nav-item" id="nav-arcade">
+        <img src="arcade.png" class="nav-icon" alt="Arcade"> 
+        <span class="nav-label">Arcade</span>
+    </div>
+    
+    <div class="nav-item" id="nav-rankings">
+        <img src="Rankings.png" class="nav-icon" alt="Rankings">
+        <span class="nav-label">Rank</span>
+    </div>
+    
+    <div class="nav-item" id="nav-rewards">
+        <img src="events.png" class="nav-icon" alt="Rewards">
+        <span class="nav-label">Rewards</span>
+    </div>
+    
+    <div class="nav-item" id="nav-profile">
+        <img src="profile.png" class="nav-icon" alt="Profile">
+        <span class="nav-label">Profile</span>
+    </div>
+</nav>
     </div>
 
     <div id="transition-overlay"></div>
@@ -1596,10 +1621,13 @@ firebase.auth().signInAnonymously()
         async function initDynamicGameList() {
             const mainContainer = document.querySelector('.main-scroll-area');
             const slotsContainer = document.querySelector('.slots-grid');
+            const arcadeContainer = document.querySelector('#arcade-panel .panel-content'); // 👈 抓取 Arcade 面板
+
+            // 🌟 每次重新載入時，清空這三個區域
             mainContainer.innerHTML = '';
             slotsContainer.innerHTML = '';
+            if (arcadeContainer) arcadeContainer.innerHTML = ''; 
 
-            // ★ 1. 從 Firebase 抓取遊戲清單
             let gamesConfig = {};
             try {
                 const snapshot = await db.ref('system/games').once('value');
@@ -1609,42 +1637,33 @@ firebase.auth().signInAnonymously()
                 return;
             }
 
-            // ★ 2. 將物件轉為陣列，並依照 order 排序
             let gamesArray = Object.entries(gamesConfig).map(([id, data]) => {
                 return { id: id, ...data };
             });
             gamesArray.sort((a, b) => (a.order || 99) - (b.order || 99));
 
             const launchGame = (e, targetUrl, gameName, gameDesc) => {
+                // (原有啟動遊戲的程式碼不變，這裡省略，請保持你原本的 launchGame 邏輯)
                 if(typeof LobbyAudio !== 'undefined') LobbyAudio.fadeOut();
-
                 const card = e.currentTarget.closest('.game-card');
                 if(card && card.classList.contains('launching')) return; 
                 if(card) card.classList.add('launching');
-
-                // 🌟 2. 紀錄當前遊戲的文案，供後續補發使用
                 activeGameDesc = gameDesc;
-
                 const overlay = document.getElementById('transition-overlay');
                 const gameContainer = document.getElementById('game-container');
-
                 let iframe = document.createElement('iframe');
                 iframe.id = "game-frame";
                 iframe.src = targetUrl;
                 iframe.allow = "autoplay; fullscreen";
-                document.body.classList.remove('lock-portrait'); // ← 加這行，開遊戲時解除鎖定
-
+                document.body.classList.remove('lock-portrait');
                 const oldFrame = document.getElementById('game-frame');
                 if(oldFrame) oldFrame.remove();
-
                 gameContainer.appendChild(iframe);
-
                 setTimeout(() => {
                     overlay.classList.add('active'); 
                     setTimeout(() => {
                         gameContainer.style.display = 'block';
                         iframe.onload = () => { 
-                            // 初始發送
                             setTimeout(() => {
                                 if(typeof currentUser !== 'undefined' && currentUser) {
                                     iframe.contentWindow.postMessage({ type: 'initBalance', value: currentUser.balance }, '*');
@@ -1664,62 +1683,64 @@ firebase.auth().signInAnonymously()
                 }, 400);
             };
 
-            // ★ 4. 根據 Firebase 資料動態生成卡片
+            // ★ 根據 Firebase 資料動態生成卡片
             gamesArray.forEach((game, index) => {
                 if (game.active === false || game.status === 'hidden') return;
 
                 const iconUrl = game.icon || 'placeholder.png'; 
                 const isOnline = game.status === 'online' && game.url;
 
+                // 1. 生成主畫面 (Home) 的大卡片
                 const card = document.createElement('div');
                 card.className = 'game-card';
                 card.style.animationDelay = `${index * 0.1}s`; 
-                
-                let hoverHtml = '';
-                if (game.description) {
-                    hoverHtml = `
-                        <div class="game-hover-info">
-                            <div class="hover-text">${game.description.replace(/\n/g, '<br>')}</div>
-                        </div>
-                    `;
-                }
+                let hoverHtml = game.description ? `<div class="game-hover-info"><div class="hover-text">${game.description.replace(/\n/g, '<br>')}</div></div>` : '';
+                let newBadgeHtml = (index === 0) ? `<div class="new-ribbon">NEW!</div>` : '';
 
-                // 👇 === 新增邏輯：判斷是否為第一個遊戲 (index === 0) ===
-                let newBadgeHtml = '';
-                if (index === 0) {
-                    newBadgeHtml = `<div class="new-ribbon">NEW!</div>`;
-                }
-
-                // 將 newBadgeHtml 加入到 card 的 HTML 結構中
-                card.innerHTML = `
-                    ${newBadgeHtml}
-                    <img src="${iconUrl}" class="game-img" alt="${game.name}" onerror="this.src='placeholder.png'">
-                    ${hoverHtml}
-                `;
-                // 👆 ==========================================
-                
-                const slot = document.createElement('div');
-                slot.className = 'slot-icon';
-                slot.innerHTML = `<img src="${iconUrl}" class="slot-thumb" onerror="this.src='placeholder.png'">`;
-
-                // 🌟 確保玩家點擊時，把 game.description 傳遞給 launchGame
+                card.innerHTML = `${newBadgeHtml}<img src="${iconUrl}" class="game-img" alt="${game.name}" onerror="this.src='placeholder.png'">${hoverHtml}`;
                 if (isOnline) {
                     card.onclick = (e) => launchGame(e, game.url, game.name, game.description);
-                    slot.onclick = (e) => launchGame(e, game.url, game.name, game.description);
-                    slot.style.cursor = 'pointer';
                 } else {
-                    card.style.filter = 'grayscale(0) brightness(0.7)';
-                    slot.style.filter = 'grayscale(0) brightness(0.7)';
+                    card.style.filter = 'grayscale(1) brightness(0.7)';
                     card.onclick = (e) => launchGame(e, 'coming_soon.html', 'Coming Soon', '');
-                    slot.onclick = (e) => launchGame(e, 'coming_soon.html', 'Coming Soon', '');
-                    slot.style.cursor = 'pointer';
                 }
+                mainContainer.appendChild(card); // 加入首頁
 
-                mainContainer.appendChild(card);
-                slotsContainer.appendChild(slot);
+                // 2. 判斷要放入 Slots 面板 還是 Arcade 面板
+                if (game.isArcade && arcadeContainer) {
+                    // 如果是 Arcade，直接複製一張主畫面的大卡片樣式給它
+                    let arcadeCard = card.cloneNode(true);
+                    arcadeCard.style.width = '90%';          // 面板內的寬度
+                    arcadeCard.style.margin = '0 auto 15px auto'; // 垂直間距
+                    arcadeCard.style.animation = 'none';     // 移除動畫避免面板切換時出錯
+                    arcadeCard.style.opacity = '1';
+                    arcadeCard.style.transform = 'translateY(0)';
+                    
+                    // 重新綁定點擊事件 (因為 cloneNode 不會複製事件)
+                    if (isOnline) {
+                        arcadeCard.onclick = (e) => launchGame(e, game.url, game.name, game.description);
+                    } else {
+                        arcadeCard.onclick = (e) => launchGame(e, 'coming_soon.html', 'Coming Soon', '');
+                    }
+                    arcadeContainer.appendChild(arcadeCard);
+
+                } else {
+                    // 如果不是 Arcade，就用小圖示放入 Slots 面板
+                    const slot = document.createElement('div');
+                    slot.className = 'slot-icon';
+                    slot.innerHTML = `<img src="${iconUrl}" class="slot-thumb" onerror="this.src='placeholder.png'">`;
+                    if (isOnline) {
+                        slot.onclick = (e) => launchGame(e, game.url, game.name, game.description);
+                        slot.style.cursor = 'pointer';
+                    } else {
+                        slot.style.filter = 'grayscale(1) brightness(0.7)';
+                        slot.onclick = (e) => launchGame(e, 'coming_soon.html', 'Coming Soon', '');
+                        slot.style.cursor = 'pointer';
+                    }
+                    slotsContainer.appendChild(slot);
+                }
             });
 
-            // 加入底部空白區塊避免被導航列擋住
             const spacer = document.createElement('div');
             spacer.style.height = '5vh';
             mainContainer.appendChild(spacer);
@@ -1840,43 +1861,57 @@ firebase.auth().signInAnonymously()
             });
 
             // Bind Navigation
-            const navItems = document.querySelectorAll('.nav-item');
-            const mainScroll = document.querySelector('.main-scroll-area');
-            const slotsPanel = document.getElementById('slots-panel');
-            const rewardsPanel = document.getElementById('rewards-panel');
-            const profilePanel = document.getElementById('profile-panel');
-            const rankingsPanel = document.getElementById('rankings-panel'); 
-            const closeButtons = document.querySelectorAll('.close-gold-btn');
-            
-            navItems.forEach(item => {
-                item.addEventListener('click', () => {
-                    navItems.forEach(i => i.classList.remove('active'));
-                    item.classList.add('active');
-                    if (item.id === 'nav-slots') openPanel(slotsPanel);
-                    else if (item.id === 'nav-rewards') openPanel(rewardsPanel); 
-                    else if (item.id === 'nav-profile') openPanel(profilePanel);
-                    else if (item.id === 'nav-rankings') openRankingsPanel();
-                    else closeAllPanels();
-                });
-            });
+const navItems = document.querySelectorAll('.nav-item');
+const mainScroll = document.querySelector('.main-scroll-area');
+const slotsPanel = document.getElementById('slots-panel');
+const arcadePanel = document.getElementById('arcade-panel'); 
+const rewardsPanel = document.getElementById('rewards-panel');
+const profilePanel = document.getElementById('profile-panel');
+const rankingsPanel = document.getElementById('rankings-panel'); 
+const closeButtons = document.querySelectorAll('.close-gold-btn');
 
-            function openPanel(targetPanel) {
-                mainScroll.classList.add('hidden');
-                [slotsPanel, rewardsPanel, profilePanel, rankingsPanel].forEach(p => {
-                    if(p !== targetPanel) p.classList.remove('active');
-                });
-                setTimeout(() => { targetPanel.classList.add('active'); }, 200);
-                if(targetPanel === rewardsPanel) renderRewards();
-            }
+// 👇👇👇 新增這三行：讓所有 CLOSE 按鈕都能觸發關閉面板的功能 👇👇👇
+closeButtons.forEach(btn => {
+    btn.addEventListener('click', closeAllPanels);
+});
+// 👆👆👆 ======================================================= 👆👆👆
 
-            function closeAllPanels() {
-                [slotsPanel, rewardsPanel, profilePanel, rankingsPanel].forEach(p => p.classList.remove('active'));
-                setTimeout(() => { mainScroll.classList.remove('hidden'); }, 200);
-                navItems.forEach(i => i.classList.remove('active'));
-                document.getElementById('nav-home').classList.add('active');
-            }
+navItems.forEach(item => {
+    item.addEventListener('click', () => {
+        navItems.forEach(i => i.classList.remove('active'));
+// ... 下面保持原樣不變
+        item.classList.add('active');
+        
+        if (item.id === 'nav-slots') openPanel(slotsPanel);
+        else if (item.id === 'nav-arcade') openPanel(arcadePanel); // 👈 點擊 Arcade 時開啟面板
+        else if (item.id === 'nav-rewards') openPanel(rewardsPanel); 
+        else if (item.id === 'nav-profile') openPanel(profilePanel);
+        else if (item.id === 'nav-rankings') openRankingsPanel();
+        else closeAllPanels();
+    });
+});
 
-            closeButtons.forEach(btn => btn.addEventListener('click', closeAllPanels));
+function openPanel(targetPanel) {
+    mainScroll.classList.add('hidden');
+    // 陣列中加入 arcadePanel
+    [slotsPanel, arcadePanel, rewardsPanel, profilePanel, rankingsPanel].forEach(p => {
+        if(p !== targetPanel && p) p.classList.remove('active');
+    });
+    setTimeout(() => { if(targetPanel) targetPanel.classList.add('active'); }, 200);
+    if(targetPanel === rewardsPanel) renderRewards();
+}
+
+function closeAllPanels() {
+    // 陣列中加入 arcadePanel
+    [slotsPanel, arcadePanel, rewardsPanel, profilePanel, rankingsPanel].forEach(p => {
+        if(p) p.classList.remove('active');
+    });
+    setTimeout(() => { mainScroll.classList.remove('hidden'); }, 200);
+    navItems.forEach(i => i.classList.remove('active'));
+    
+    // 關閉面板後，預設讓最左邊的 Slots 按鈕保持焦點
+    //document.getElementById('nav-slots').classList.add('active');
+}
 
             // Bind Option Button
             const optionBtn = document.querySelector('.menu-btn');
